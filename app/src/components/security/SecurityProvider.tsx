@@ -89,6 +89,15 @@ const DEFAULT_USERS: User[] = [
     permissions: ['products.read', 'testing.read', 'reports.read'],
     password: 'password',
   },
+  {
+    id: '5',
+    username: 'guest',
+    name: 'زائر',
+    role: 'viewer',
+    department: 'عام',
+    permissions: ['products.read', 'testing.read', 'reports.read', 'materials.read'],
+    password: 'guest',
+  },
 ];
 
 // ==================== Role Permissions Map ====================
@@ -133,9 +142,33 @@ export function SecurityProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [allUsers, setAllUsers] = useState<User[]>(loadUsers);
 
+  // Auto-login as guest function for public access
+  const autoLoginAsGuest = () => {
+    const guestUser = allUsers.find((u) => u.username === 'guest');
+    if (guestUser) {
+      const sessionExpiry = new Date();
+      sessionExpiry.setHours(sessionExpiry.getHours() + 8);
+      const userWithSession = {
+        ...guestUser,
+        lastLogin: new Date(),
+        sessionExpiry,
+      };
+      setUser(userWithSession);
+      localStorage.setItem('currentUser', JSON.stringify(userWithSession));
+      localStorage.setItem('sessionExpiry', sessionExpiry.toISOString());
+      const activityLog = JSON.parse(localStorage.getItem('activityLog') || '[]');
+      activityLog.unshift({
+        timestamp: new Date().toISOString(),
+        action: 'AUTO_LOGIN',
+        user: 'guest',
+        details: 'Auto logged in as guest for public access',
+      });
+      localStorage.setItem('activityLog', JSON.stringify(activityLog.slice(0, 100)));
+    }
+  };
+
   useEffect(() => {
     console.log("SecurityProvider: Checking for session...");
-    // Check for stored session
     const storedUser = localStorage.getItem('currentUser');
     const sessionExpiry = localStorage.getItem('sessionExpiry');
 
@@ -145,13 +178,14 @@ export function SecurityProvider({ children }: { children: ReactNode }) {
         console.log("SecurityProvider: Session valid, restoring user...");
         setUser(JSON.parse(storedUser));
       } else {
-        console.log("SecurityProvider: Session expired.");
-        // Session expired
+        console.log("SecurityProvider: Session expired - auto-login as guest");
         localStorage.removeItem('currentUser');
         localStorage.removeItem('sessionExpiry');
+        autoLoginAsGuest();
       }
     } else {
-      console.log("SecurityProvider: No session found.");
+      console.log("SecurityProvider: No session found - auto-login as guest");
+      autoLoginAsGuest();
     }
     setIsLoading(false);
     console.log("SecurityProvider: Loading set to false.");

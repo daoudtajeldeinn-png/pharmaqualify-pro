@@ -9,8 +9,19 @@ interface LicenseContextType {
 
 const LicenseContext = createContext<LicenseContextType | null>(null);
 
+// 3-month trial license key
+const THREE_MONTH_LICENSE_KEY = 'PVVrVVZOVVJUOUZOeUFqTWZOVVVmRlVUU0ZFU1FwVE96QWpNMkFUTzBNRE00Y1RN';
+
 export function LicenseProvider({ children }: { children: ReactNode }) {
-    const [status, setStatus] = useState<LicenseStatus>(validateLicenseKey(getStoredLicenseKey()));
+    const [status, setStatus] = useState<LicenseStatus>(() => {
+        // Auto-activate 3-month license on first load if no license exists
+        const storedKey = getStoredLicenseKey();
+        if (!storedKey) {
+            setLicenseKey(THREE_MONTH_LICENSE_KEY);
+            return validateLicenseKey(THREE_MONTH_LICENSE_KEY);
+        }
+        return validateLicenseKey(storedKey);
+    });
 
     // Re-validate daily
     useEffect(() => {
