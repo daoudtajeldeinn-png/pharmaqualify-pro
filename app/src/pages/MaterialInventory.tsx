@@ -33,7 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Card, CardContent } from '@/components/ui/card';
 import { Plus, Search, Package, Trash2, Edit, Eye, Beaker, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import type { RawMaterial, MaterialType, MaterialStatus, Pharmacopeia } from '@/types/materials';
 import { cn } from '@/lib/utils';
