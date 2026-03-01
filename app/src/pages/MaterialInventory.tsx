@@ -44,8 +44,22 @@ const pharmacopeiaOptions: Pharmacopeia[] = ['BP', 'USP', 'EP'];
 const materialTypes: MaterialType[] = ['API', 'Excipient', 'Packaging', 'Solvent'];
 const materialStatuses: MaterialStatus[] = ['Under_Test', 'Approved', 'Rejected', 'Quarantine'];
 
+// Form data type
+type MaterialFormData = {
+  name: string;
+  type: MaterialType;
+  supplier: string;
+  batchNumber: string;
+  pharmacopeia: Pharmacopeia;
+  quantity: number;
+  unit: string;
+  receivedDate: string;
+  expiryDate: string;
+  location: string;
+};
+
 // Initial form state
-const initialFormState: Omit<RawMaterial, 'id' | 'createdAt' | 'tests' | 'status'> = {
+const initialFormState: MaterialFormData = {
   name: '',
   type: 'API',
   supplier: '',
@@ -67,7 +81,7 @@ export default function MaterialInventoryPage() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<RawMaterial | null>(null);
-  const [formData, setFormData] = useState(initialFormState);
+  const [formData, setFormData] = useState<MaterialFormData>(initialFormState);
 
   // Load materials from localStorage on mount
   useEffect(() => {
