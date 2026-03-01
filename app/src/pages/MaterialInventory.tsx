@@ -37,6 +37,7 @@ import { Plus, Search, Package, Trash2, Edit, Eye, Beaker, AlertTriangle, CheckC
 import type { RawMaterial, MaterialType, MaterialStatus, Pharmacopeia } from '@/types/materials';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useSecurity } from '@/components/security/SecurityProvider';
 
 // Extended pharmacopeia type to include more options
 const pharmacopeiaOptions: Pharmacopeia[] = ['BP', 'USP', 'EP'];
@@ -72,6 +73,7 @@ const initialFormState: MaterialFormData = {
 };
 
 export default function MaterialInventoryPage() {
+  const { user, hasPermission } = useSecurity();
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -81,6 +83,10 @@ export default function MaterialInventoryPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState<RawMaterial | null>(null);
   const [formData, setFormData] = useState<MaterialFormData>(initialFormState);
+
+  // Check if user has write permissions
+  const canWrite = hasPermission('materials.write') || hasPermission('testing.write');
+  const isViewer = user?.role === 'viewer';
 
   // Load materials from localStorage on mount
   useEffect(() => {
@@ -214,10 +220,12 @@ export default function MaterialInventoryPage() {
           <h1 className="text-2xl font-bold text-slate-900">Raw Material Inventory</h1>
           <p className="text-slate-500">Managing Pharmaceutical Raw Materials & Incoming QC</p>
         </div>
-        <Button onClick={handleAdd} className="bg-indigo-600">
-          <Plus className="mr-2 h-4 w-4" />
-          Register New Material
-        </Button>
+        {canWrite && (
+          <Button onClick={handleAdd} className="bg-indigo-600">
+            <Plus className="mr-2 h-4 w-4" />
+            Register New Material
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -317,24 +325,28 @@ export default function MaterialInventoryPage() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Edit"
-                        className="h-8 w-8"
-                        onClick={() => handleEdit(material)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Delete"
-                        className="h-8 w-8 text-red-600 hover:bg-red-50"
-                        onClick={() => handleDelete(material)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canWrite && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Edit"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(material)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Delete"
+                            className="h-8 w-8 text-red-600 hover:bg-red-50"
+                            onClick={() => handleDelete(material)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
