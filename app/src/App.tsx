@@ -99,7 +99,7 @@ function PWAInstallPrompt() {
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useSecurity();
+  const { isLoading } = useSecurity();
   const { status } = useLicense();
   const isDev = import.meta.env.DEV;
 
