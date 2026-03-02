@@ -37,6 +37,22 @@ package-lock.json
 components.json
 tsconfig.json
 
+# Root-level duplicates (also exist in app/)
+generate_key.js
+MasterKeyGen.js
+hooks/
+lib/
+types/
+
+# Local setup scripts (not needed for Vercel)
+*.bat
+*.vbs
+*.lnk
+
+# Toolkit and other local files
+.toolkit/
+package.json.backup
+
 # Misc
 .DS_Store
 Thumbs.db
