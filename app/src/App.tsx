@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { StoreProvider } from '@/hooks/useStore';
 import { SecurityProvider, useSecurity, LoginPage } from '@/components/security/SecurityProvider';
 import { LicenseProvider, useLicense } from '@/components/security/LicenseProvider';
@@ -185,6 +186,7 @@ function App() {
           </SecurityProvider>
         </StoreProvider>
       </LicenseProvider>
+      <Analytics />
     </ErrorBoundary>
   );
 }
