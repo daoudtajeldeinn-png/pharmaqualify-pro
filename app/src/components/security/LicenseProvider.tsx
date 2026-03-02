@@ -1,6 +1,6 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { validateLicenseKey, getStoredLicenseKey, setLicenseKey, type LicenseStatus } from '@/services/LicenseManager';
+import { type LicenseStatus } from '@/services/LicenseManager';
 
 interface LicenseContextType {
     status: LicenseStatus;
@@ -9,25 +9,21 @@ interface LicenseContextType {
 
 const LicenseContext = createContext<LicenseContextType | null>(null);
 
+// Always valid license - public access for everyone
+const PUBLIC_LICENSE_STATUS: LicenseStatus = {
+    isValid: true,
+    expiryDate: null,
+    daysRemaining: 999,
+    message: 'Public Access - Open for All'
+};
+
 export function LicenseProvider({ children }: { children: ReactNode }) {
-    const [status, setStatus] = useState<LicenseStatus>(validateLicenseKey(getStoredLicenseKey()));
+    // Always return valid license - public access mode
+    const [status] = useState<LicenseStatus>(PUBLIC_LICENSE_STATUS);
 
-    // Re-validate daily
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setStatus(validateLicenseKey(getStoredLicenseKey()));
-        }, 1000 * 60 * 60 * 6); // Every 6 hours
-        return () => clearInterval(interval);
-    }, []);
-
-    const activate = (key: string): boolean => {
-        const validation = validateLicenseKey(key);
-        if (validation.isValid) {
-            setLicenseKey(key);
-            setStatus(validation);
-            return true;
-        }
-        return false;
+    const activate = (_key: string): boolean => {
+        // No activation needed - public access
+        return true;
     };
 
     // If it's development mode, we bypass the lock for easier workflow
@@ -41,7 +37,7 @@ export function LicenseProvider({ children }: { children: ReactNode }) {
                 <div className={cn("backdrop-blur-sm shadow-sm flex items-center gap-1 border border-slate-200 px-2 py-1 rounded bg-white/80 dark:bg-slate-900/80")}>
                     <ShieldCheck className="h-3 w-3 text-emerald-500" />
                     <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-900">
-                        {isDev ? "Dev Mode: Unlocked" : (status.isValid ? "Ent. Licensed" : "License Expired")}
+                        {isDev ? "Dev Mode: Unlocked" : "Public Access"}
                     </span>
                 </div>
             </div>

@@ -100,7 +100,7 @@ function PWAInstallPrompt() {
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useSecurity();
+  const { isLoading } = useSecurity();
   const { status } = useLicense();
   const isDev = import.meta.env.DEV;
 
@@ -112,12 +112,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!status.isValid && !isDev) {
-    return <LoginPage forcedLicenseLock />;
+  // If license is valid (public access mode), allow access without login
+  if (status.isValid) {
+    // Auto-login as guest will handle in SecurityProvider
+    return <>{children}</>;
   }
 
-  if (!isAuthenticated) {
-    return <LoginPage />;
+  if (!isDev) {
+    return <LoginPage forcedLicenseLock />;
   }
 
   return <>{children}</>;

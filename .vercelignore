@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+app/node_modules/
+
+# Development
+.vscode/
+.git/
+*.log
+*.lock
+
+# Documentation
+README.md
+START_HERE.md
+*.md
+
+# Legacy/Vue files
+PharmaQMS-Vue/
+
+# Backup files
+*.backup
+*.bak
+
+# Configuration (local)
+.env
+.env.local
+.env.*.local
+
+# Build outputs we don't need
+app/dist/  # Vercel will rebuild
+
+# Misc
+.DS_Store
+Thumbs.db
