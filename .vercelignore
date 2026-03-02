@@ -28,6 +28,15 @@ PharmaQMS-Vue/
 # Build outputs we don't need
 app/dist/  # Vercel will rebuild
 
+# Root-level files that conflict with app/ folder
+# These cause confusion in Vercel deployment
+index.html
+vite.config.ts
+package.json
+package-lock.json
+components.json
+tsconfig.json
+
 # Misc
 .DS_Store
 Thumbs.db
