@@ -28,6 +28,9 @@ PharmaQMS-Vue/
 # Build outputs we don't need
 app/dist/  # Vercel will rebuild
 
+# Beta/documentation files that shouldn't be deployed
+app/.vade-report
+
 # Root-level files that conflict with app/ folder
 # These cause confusion in Vercel deployment
 index.html
