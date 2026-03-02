@@ -73,7 +73,7 @@ const initialFormState: MaterialFormData = {
 };
 
 export default function MaterialInventoryPage() {
-  const { user, hasPermission } = useSecurity();
+  const { hasPermission } = useSecurity();
   const [materials, setMaterials] = useState<RawMaterial[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -86,7 +86,6 @@ export default function MaterialInventoryPage() {
 
   // Check if user has write permissions
   const canWrite = hasPermission('materials.write') || hasPermission('testing.write');
-  const isViewer = user?.role === 'viewer';
 
   // Load materials from localStorage on mount
   useEffect(() => {
