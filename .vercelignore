@@ -35,8 +35,6 @@ app/.vade-report
 # These cause confusion in Vercel deployment
 index.html
 vite.config.ts
-package.json
-package-lock.json
 components.json
 tsconfig.json
 
@@ -54,7 +52,6 @@ types/
 
 # Toolkit and other local files
 .toolkit/
-package.json.backup
 
 # Misc
 .DS_Store
