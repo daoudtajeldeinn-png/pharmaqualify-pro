@@ -33,10 +33,6 @@ app/.vade-report
 
 # Root-level files that conflict with app/ folder
 # These cause confusion in Vercel deployment
-index.html
-vite.config.ts
-components.json
-tsconfig.json
 
 # Root-level duplicates (also exist in app/)
 generate_key.js
