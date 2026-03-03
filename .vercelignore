@@ -37,9 +37,6 @@ app/.vade-report
 # Root-level duplicates (also exist in app/)
 generate_key.js
 MasterKeyGen.js
-hooks/
-lib/
-types/
 
 # Local setup scripts (not needed for Vercel)
 *.bat
