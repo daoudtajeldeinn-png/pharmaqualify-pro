@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/hooks/useStore';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
@@ -26,6 +27,7 @@ import type { ValidationIssue } from '@/services/ValidationSuite';
 
 export function Dashboard() {
   const { state, dispatch } = useStore();
+  const navigate = useNavigate();
   const now = useMemo(() => Date.now(), []);
 
   useEffect(() => {
@@ -221,48 +223,56 @@ export function Dashboard() {
           value={state.dashboardStats.totalProducts}
           icon={Pill}
           color="blue"
+          onClick={() => navigate('/products')}
         />
         <StatCard
           title="Lab Queue"
           value={state.dashboardStats.pendingTests}
           icon={FlaskConical}
           color="yellow"
+          onClick={() => navigate('/testing/results')}
         />
         <StatCard
           title="OOS Stream"
           value={state.dashboardStats.oosCount}
           icon={AlertTriangle}
           color="red"
+          onClick={() => navigate('/testing/oos')}
         />
         <StatCard
           title="Deviations"
           value={state.dashboardStats.openDeviations}
           icon={ClipboardCheck}
           color="orange"
+          onClick={() => navigate('/deviations')}
         />
         <StatCard
           title="Active CAPA"
           value={state.dashboardStats.openCAPAs}
           icon={ClipboardCheck}
           color="purple"
+          onClick={() => navigate('/capa')}
         />
         <StatCard
           title="Assets Cal."
           value={state.dashboardStats.upcomingCalibrations}
           icon={Wrench}
           color="blue"
+          onClick={() => navigate('/equipment/calibration')}
         />
         <StatCard
           title="Safety Feed"
           value={state.dashboardStats.openComplaints || 0}
           icon={MessageSquare}
           color="rose"
+          onClick={() => navigate('/complaints')}
         />
         <StatCard
           title="Recalls"
           value={state.dashboardStats.activeRecalls || 0}
           icon={FileWarning}
           color="red"
+          onClick={() => navigate('/recalls')}
         />
       </div>
 

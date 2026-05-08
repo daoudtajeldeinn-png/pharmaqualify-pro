@@ -737,10 +737,13 @@ export interface COARecord {
   coaNumber: string;
   analysisNo: string;
   productName: string;
+  genericName?: string;
+  brandName?: string;
   strength: string;
   dosageForm: string;
   batchNumber: string;
   batchSize: string;
+  quantity?: string;
   manufacturingDate: string;
   receivingDate?: string;
   analysisDate?: string;

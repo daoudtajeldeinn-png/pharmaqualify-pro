@@ -70,11 +70,14 @@ export function COAManagerPage() {
             type: formData.type || 'Finished Product',
             coaNumber: formData.coaNumber || `COA-${Date.now()}`,
             analysisNo: formData.analysisNo || '',
+            genericName: formData.genericName || '',
+            brandName: formData.brandName || '',
             productName: formData.productName || '',
             strength: formData.strength || '',
             dosageForm: formData.dosageForm || '',
             batchNumber: formData.batchNumber || '',
             batchSize: formData.batchSize || '',
+            quantity: formData.quantity || '',
             manufacturingDate: formData.manufacturingDate || '',
             receivingDate: formData.receivingDate || '',
             analysisDate: formData.analysisDate || '',
@@ -323,15 +326,64 @@ export function COAManagerPage() {
                             <div className="space-y-1"><Label>Issue Date</Label><Input type="date" value={formData.issueDate || ''} onChange={e => setFormData({ ...formData, issueDate: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Manufacturer</Label><Input value={formData.manufacturer || ''} onChange={e => setFormData({ ...formData, manufacturer: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Manufacturing Address</Label><Input value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className="border-slate-300" /></div>
+                            <div className="space-y-1"><Label>Generic Name</Label><Input value={formData.genericName || ''} onChange={e => setFormData({ ...formData, genericName: e.target.value })} className="border-slate-300" /></div>
+                            <div className="space-y-1"><Label>Trade Name (Brand)</Label><Input value={formData.brandName || ''} onChange={e => setFormData({ ...formData, brandName: e.target.value })} className="border-slate-300" /></div>
+                            <div className="space-y-1"><Label>Quantity (QTY)</Label><Input value={formData.quantity || ''} onChange={e => setFormData({ ...formData, quantity: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1 col-span-2">
                               <Button 
                                 type="button"
                                 onClick={() => {
-                                  toast.info('Fetch tests feature not yet implemented');
+                                  if (!formData.batchNumber) {
+                                    toast.error('Please enter a Batch Number first');
+                                    return;
+                                  }
+
+                                  if (formData.type === 'Raw Material') {
+                                    const material = state.rawMaterials.find(m => m.batchNumber === formData.batchNumber);
+                                    if (material && material.tests && material.tests.length > 0) {
+                                      const fetchedTests = material.tests.map(t => ({
+                                        test: t.name,
+                                        specification: t.spec,
+                                        result: String(t.result || ''),
+                                        status: t.status === 'Pass' ? 'Pass' : t.status === 'Fail' ? 'Fail' : 'Pending'
+                                      }));
+                                      setFormData({
+                                        ...formData,
+                                        productName: material.name,
+                                        genericName: material.name,
+                                        manufacturingDate: material.manufacturingDate || material.productionDate || '',
+                                        expiryDate: material.expiryDate || '',
+                                        quantity: `${material.quantity} ${material.unit}`,
+                                        manufacturer: material.supplier,
+                                        testResults: fetchedTests as any
+                                      });
+                                      toast.success(`Fetched ${fetchedTests.length} tests from Raw Material inventory`);
+                                    } else {
+                                      toast.warning('No test results found for this Raw Material batch');
+                                    }
+                                  } else {
+                                    // For Finished Product, look in TestResults
+                                    const results = state.testResults.filter(r => r.batchNumber === formData.batchNumber);
+                                    if (results.length > 0) {
+                                      const fetchedTests = results.flatMap(r => r.parameters.map(p => ({
+                                        test: p.parameterName,
+                                        specification: `${p.minValue || ''} - ${p.maxValue || ''} ${p.unit || ''}`,
+                                        result: String(p.value || ''),
+                                        status: p.result === 'Pass' ? 'Pass' : 'Fail'
+                                      })));
+                                      setFormData({
+                                        ...formData,
+                                        testResults: fetchedTests as any
+                                      });
+                                      toast.success(`Fetched ${fetchedTests.length} parameters from Test Results`);
+                                    } else {
+                                      toast.warning('No batch test results found in Laboratory Hub');
+                                    }
+                                  }
                                 }}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 shadow-lg transition-all"
                               >
-                                🔄 Fetch Tests from Batch Test Results
+                                🔄 Fetch Analysis Results from System
                               </Button>
                             </div>
                             <div className="col-span-2 space-y-1"><Label>Recall & Market Complaint Status</Label><Input value={formData.marketComplaintStatus || ''} onChange={e => setFormData({ ...formData, marketComplaintStatus: e.target.value })} placeholder="Verified and Compliant" className="border-slate-300" /></div>
@@ -400,12 +452,23 @@ export function COAManagerPage() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-x-8 gap-y-2 mb-8 p-4 border-2 border-black rounded-lg text-sm bg-slate-50/50">
-                            <div className="flex justify-between border-b border-dotted pb-1"><strong>Product Name:</strong> <span className="font-bold">{selectedCOA.productName}</span></div>
+                            <div className="flex justify-between border-b border-dotted pb-1"><strong>Product/Material:</strong> <span className="font-bold">{selectedCOA.productName}</span></div>
                             <div className="flex justify-between border-b border-dotted pb-1"><strong>Batch Number:</strong> <span className="font-mono">{selectedCOA.batchNumber}</span></div>
+                            {selectedCOA.genericName && (
+                                <div className="flex justify-between border-b border-dotted pb-1"><strong>Generic Name:</strong> <span>{selectedCOA.genericName}</span></div>
+                            )}
+                            {selectedCOA.brandName && (
+                                <div className="flex justify-between border-b border-dotted pb-1"><strong>Trade Name:</strong> <span>{selectedCOA.brandName}</span></div>
+                            )}
                             <div className="flex justify-between border-b border-dotted pb-1"><strong>Analysis No:</strong> <span>{selectedCOA.analysisNo}</span></div>
-                            <div className="flex justify-between border-b border-dotted pb-1"><strong>Batch Size:</strong> <span>{selectedCOA.batchSize}</span></div>
+                            <div className="flex justify-between border-b border-dotted pb-1"><strong>Batch/Lot Size:</strong> <span>{selectedCOA.batchSize}</span></div>
+                            {selectedCOA.quantity && (
+                                <div className="flex justify-between border-b border-dotted pb-1"><strong>Quantity (QTY):</strong> <span>{selectedCOA.quantity}</span></div>
+                            )}
                             <div className="flex justify-between border-b border-dotted pb-1"><strong>Strength:</strong> <span>{selectedCOA.strength}</span></div>
                             <div className="flex justify-between border-b border-dotted pb-1"><strong>Dosage Form:</strong> <span>{selectedCOA.dosageForm}</span></div>
+                            <div className="flex justify-between border-b border-dotted pb-1"><strong>Manufacturing Date:</strong> <span>{selectedCOA.manufacturingDate}</span></div>
+                            <div className="flex justify-between border-b border-dotted pb-1"><strong>Expiry Date:</strong> <span>{selectedCOA.expiryDate}</span></div>
                             <div className="flex justify-between border-b border-dotted pb-1"><strong>Issue Date:</strong> <span>{selectedCOA.issueDate}</span></div>
                         </div>
 
