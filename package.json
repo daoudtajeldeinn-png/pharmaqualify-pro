@@ -1,7 +1,7 @@
 {
   "name": "pharmaqms",
   "private": true,
-  "version": "4.2.10",
+  "version": "4.2.11",
   "description": "Enterprise Pharmaceutical Quality Management System",
   "author": "Dr. Daoud Tajeldeinn",
   "type": "module",
@@ -23,8 +23,7 @@
     "productName": "PharmaQMS Enterprise",
     "copyright": "Copyright © 2026",
     "directories": {
-      "output": "dist-electron",
-      "app": "app"
+      "output": "dist-electron"
     },
     "win": {
       "target": "nsis",
