@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18 # Use the appropriate Node version for your project
+          node-version: 20 # Upgraded from 18 to support Vite 7 and Supabase components
 
       - name: Install Dependencies
         run: npm install
