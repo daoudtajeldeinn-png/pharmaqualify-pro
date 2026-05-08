@@ -46,6 +46,7 @@ import {
   Pencil,
   Users,
   CheckCircle,
+  Activity,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useLicense } from '@/components/security/LicenseProvider';
@@ -514,6 +515,60 @@ export function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Software Update Card */}
+          <Card className="border-blue-100 bg-blue-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Download className="h-5 w-5 text-blue-600" />
+                Software Update & Version Control
+              </CardTitle>
+              <CardDescription>
+                Manage your PharmaQMS Enterprise build and check for official releases
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white rounded-lg border">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 rounded-full">
+                    <Activity className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500 font-medium">Installed Version</p>
+                    <p className="text-xl font-black text-slate-900 tracking-tight">v4.2.11</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => {
+                      try {
+                        const { ipcRenderer } = (window as any).require('electron');
+                        ipcRenderer.send('check-for-update');
+                        toast.info('Checking for official updates on GitHub...');
+                      } catch (e) {
+                        toast.error('Update check is only available in the Desktop App');
+                      }
+                    }}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Check for Updates
+                  </Button>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Branch: Production-Stable</p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-indigo-50 border border-indigo-100 space-y-2">
+                <p className="text-xs font-bold text-indigo-700 flex items-center gap-2">
+                  <Shield className="h-3 w-3" /> Auto-Update Protocol
+                </p>
+                <p className="text-xs text-indigo-600/80 leading-relaxed">
+                  System automatically verifies integrity and checks for security patches on every startup. 
+                  Major GxP compliance updates require administrative authorization before final installation.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
@@ -761,8 +816,8 @@ export function SettingsPage() {
             </div>
             <div className="text-right">
               <p className="text-sm text-slate-600 font-bold">Release Build</p>
-              <p className="text-lg font-black text-blue-900">v1.2.4-stable</p>
-              <p className="text-xs text-slate-500">© 2024-2025 All Rights Reserved</p>
+              <p className="text-lg font-black text-blue-900">v4.2.11-stable</p>
+              <p className="text-xs text-slate-500">© 2024-2026 All Rights Reserved</p>
             </div>
           </div>
         </CardContent>
