@@ -138,12 +138,6 @@ function AppLayout() {
           const { syncAllTables } = await import('@/services/CloudSyncService');
           const result = await syncAllTables();
           console.log(`AppLayout: Background sync complete. Success: ${result.successCount}, Fail: ${result.failCount}`);
-          
-          if (result.successCount > 0) {
-            // We don't want to reload the page automatically here as it might cause loops
-            // But the next time they navigate or if we had a global refresh, they'd see the data.
-            // For now, logging it is enough for the dev console, and the manual sync is there for explicit refresh.
-          }
         } catch (e) {
           console.error('AppLayout: Background sync failed', e);
         }
