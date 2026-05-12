@@ -80,15 +80,18 @@ export async function syncAllTables() {
                     const cleanItem = { ...item };
                     for (const key in cleanItem) {
                         const val = cleanItem[key];
-                        // Basic check for ISO date strings
-                        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(val)) {
-                            cleanItem[key] = new Date(val);
+                        // Robust check for ISO date strings
+                        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) {
+                            const dateVal = new Date(val);
+                            if (!isNaN(dateVal.getTime())) {
+                                cleanItem[key] = dateVal;
+                            }
                         }
                     }
                     return cleanItem;
                 });
 
-                // Put into Dexie (bulkPut handles upsert)
+                // Put into Dexie (bulkPut handles upsert/merge)
                 await (db as any)[tableName].bulkPut(processedData);
             }
 
