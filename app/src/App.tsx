@@ -126,6 +126,29 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 // Main App Layout
 function AppLayout() {
+  const { user } = useSecurity();
+  const { status } = useLicense();
+
+  // Background Sync on App Load
+  useEffect(() => {
+    const performBackgroundSync = async () => {
+      if (user && status.isValid) {
+        console.log('AppLayout: Initializing background cloud synchronization...');
+        try {
+          const { syncAllTables } = await import('@/services/CloudSyncService');
+          const result = await syncAllTables();
+          console.log(`AppLayout: Background sync complete. Success: ${result.successCount}, Fail: ${result.failCount}`);
+        } catch (e) {
+          console.error('AppLayout: Background sync failed', e);
+        }
+      }
+    };
+
+    // Delay background sync slightly to prioritize initial render
+    const timer = setTimeout(performBackgroundSync, 3000);
+    return () => clearTimeout(timer);
+  }, [user?.id, status.isValid]);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <Sidebar />

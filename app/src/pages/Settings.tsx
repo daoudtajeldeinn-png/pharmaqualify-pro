@@ -148,31 +148,39 @@ export function SettingsPage() {
   const handleCloudSync = async () => {
     setIsSyncing(true);
     try {
-      // Step 1: Verify Connectivity by fetching count from notifications
-      const { count, error: connError } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true });
+      // Import the service dynamically or at the top
+      const { syncAllTables } = await import('@/services/CloudSyncService');
       
-      if (connError) throw connError;
+      const result = await syncAllTables();
       
-      // Step 2: Try to log the sync event (if audit_logs exists)
-      // We'll wrap this in another try-catch so the whole sync doesn't fail if just logging fails
+      if (result.failCount > 0) {
+        console.warn('Some tables failed to sync:', result.errors);
+        toast.warning(`Sync partially completed. ${result.successCount} tables synced, ${result.failCount} skipped.`);
+      } else {
+        toast.success('Enterprise Cloud Synchronization Complete! All data is now at parity.');
+      }
+      
+      // Log the sync event
       try {
         await supabase.from('audit_logs').insert([
           { 
             action: 'MANUAL_SYNC', 
-            details: `User triggered manual cloud synchronization. Current notification count: ${count}`,
+            details: `User completed full cloud synchronization. Success: ${result.successCount}, Fail: ${result.failCount}`,
             user_id: user?.id || 'anonymous'
           }
         ]);
       } catch (logErr) {
-        console.warn('Logging to audit_logs failed, but connection is active:', logErr);
+        console.warn('Logging to audit_logs failed:', logErr);
       }
-      
-      toast.success('Cloud Connection Verified! System is synchronized with Supabase Enterprise.');
-    } catch (err) {
+
+      // Refresh the page to reload state from the newly synced Dexie DB
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+
+    } catch (err: any) {
       console.error('Sync error:', err);
-      toast.error('Cloud Sync failed. Please verify your Supabase URL and Anon Key in the .env file.');
+      toast.error('Cloud Sync failed: ' + (err.message || 'Check connection settings'));
     } finally {
       setIsSyncing(false);
     }
