@@ -75,25 +75,46 @@ const [materialForm, setMaterialForm] = useState({
       return;
     }
 
-    const tests = PHARMACOPEIA_TESTS[materialForm.type].map(test => ({
+    // Determine department based on user selection or role
+    const currentDept = materialForm.type === 'Microbiology' ? 'Microbiology' : 'QC';
+
+    const tests = PHARMACOPEIA_TESTS[materialForm.type === 'Microbiology' ? 'API' : materialForm.type]?.map(test => ({
       ...test,
+      id: Math.random().toString(36).substr(2, 9),
       result: undefined,
       testedBy: '',
       testedAt: undefined,
       status: 'Pending' as const,
       remarks: '',
-    }));
+      department: currentDept as any
+    })) || [];
 
-    const newMaterial: RawMaterial = {
-      id: `MAT-${Date.now()}`,
-      ...materialForm,
-      tests,
-      status: 'Quarantine',
-      createdAt: new Date(),
-    };
+    // Check if batch already exists to prevent duplication
+    const existingMaterial = materials.find(m => m.batchNumber === materialForm.batchNumber);
 
-    dispatch({ type: 'ADD_RAW_MATERIAL', payload: newMaterial });
-    toast.success(`Registered material: ${materialForm.name} with ${tests.length} tests`);
+    if (existingMaterial) {
+      // MERGE LOGIC: Add new tests to existing material instead of duplicating
+      const mergedMaterial: RawMaterial = {
+        ...existingMaterial,
+        quantity: existingMaterial.quantity + materialForm.quantity,
+        tests: [...existingMaterial.tests, ...tests],
+        status: 'Under_Test'
+      };
+      dispatch({ type: 'UPDATE_RAW_MATERIAL', payload: mergedMaterial });
+      toast.success(`Merged data into existing batch: ${materialForm.batchNumber}. Total tests: ${mergedMaterial.tests.length}`);
+    } else {
+      // NEW RECORD
+      const newMaterial: RawMaterial = {
+        id: `MAT-${Date.now()}`,
+        ...materialForm,
+        tests,
+        status: 'Quarantine',
+        createdAt: new Date(),
+        department: currentDept as any
+      };
+      dispatch({ type: 'ADD_RAW_MATERIAL', payload: newMaterial });
+      toast.success(`Registered new material batch: ${materialForm.name}`);
+    }
 
     setIsNewMaterialOpen(false);
     setMaterialForm({

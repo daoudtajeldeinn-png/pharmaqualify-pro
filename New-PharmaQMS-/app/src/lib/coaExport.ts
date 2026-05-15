@@ -16,7 +16,7 @@ TEST RESULTS:
 ${'='.repeat(50)}
 
 ${material.tests.map(test => `
-Test: ${test.name}
+Test: ${test.name} (${test.department || 'General'})
 Specification: ${test.spec}
 Method: ${test.method}
 Result: ${test.result || 'N/A'}
@@ -138,7 +138,7 @@ export async function generateCOAPDF(material: RawMaterial): Promise<void> {
     }
 
     doc.rect(15, y, 180, 10);
-    doc.text(test.name.substring(0, 35), 20, y + 6);
+    doc.text(`${test.name} (${test.department || 'QC'})`.substring(0, 35), 20, y + 6);
     doc.text(test.spec.substring(0, 35), 75, y + 6);
     doc.setFont('times', 'bold');
     doc.text(String(test.result || '-').substring(0, 30), 135, y + 6);

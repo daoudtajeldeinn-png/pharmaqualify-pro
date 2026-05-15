@@ -14,6 +14,7 @@ export interface MaterialTest {
   testedAt?: Date
   status: TestStatus
   remarks?: string
+  department?: 'QC' | 'Microbiology' | 'Production' | 'QA'
 }
 
 export interface RawMaterial {
@@ -35,6 +36,7 @@ export interface RawMaterial {
   status: MaterialStatus
   createdAt: Date
   location?: string
+  department?: 'QC' | 'Microbiology' | 'Production' | 'QA'
 }
 
 export interface MaterialMovement {

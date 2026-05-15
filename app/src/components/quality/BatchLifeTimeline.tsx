@@ -30,53 +30,87 @@ export function BatchLifeTimeline({ batchNumber }: BatchLifeTimelineProps) {
     const events = React.useMemo(() => {
         const timeline: TimelineEvent[] = [];
 
-        // 1. Find Raw Material Receipt
+        // 1. Raw Material Receipt (Warehouse/Inventory)
         const material = state.rawMaterials.find(m => m.batchNumber === batchNumber);
         if (material) {
             timeline.push({
                 id: 'receipt',
-                title: 'Material Receipt',
-                description: `Received ${material.name} from ${material.supplier}`,
+                title: 'Material Receipt (Warehouse)',
+                description: `Received ${material.name} from ${material.supplier}. Quality Status: ${material.status}`,
                 date: material.receivedDate,
                 type: 'Receipt',
                 status: 'Complete'
             });
         }
 
-        // 2. Find IPQC Checks
+        // 2. IPQC Checks (Production Department)
         const ipqc = state.ipqcChecks.filter(i => i.batchNumber === batchNumber);
         ipqc.forEach((check, index) => {
             timeline.push({
                 id: `ipqc-${index}`,
-                title: `IPQC Check: ${check.stage}`,
-                description: `Conducted by ${check.checkedBy}. Result: ${check.result}`,
+                title: `Production: ${check.stage} Check`,
+                description: `IPQC monitored ${check.parameter}. Result: ${check.result} (${check.checkedBy})`,
                 date: new Date(check.checkedAt).toISOString().split('T')[0],
                 type: 'IPQC',
                 status: check.result === 'Pass' ? 'Complete' : 'Warning'
             });
         });
 
-        // 3. Find QC Test Results
+        // 3. QC & Microbiology Analysis (Laboratory Department)
         const tests = state.testResults.filter(t => t.batchNumber === batchNumber);
         tests.forEach((test, index) => {
+            // Find method to check category
+            const method = state.testMethods.find(m => m.id === test.testMethodId);
+            const dept = method?.category === 'Microbial' ? 'Microbiology' : 'QC Chemical Lab';
+            
             const completionDate = test.completionDate ? (test.completionDate instanceof Date ? test.completionDate.toISOString().split('T')[0] : String(test.completionDate)) : 'Pending';
             timeline.push({
                 id: `test-${index}`,
-                title: `QC Analysis: ${test.testMethodId}`,
-                description: `Analyst: ${test.analystId}. Result: ${test.overallResult}`,
+                title: `${dept}: ${test.testMethodId}`,
+                description: `Analyst: ${test.analystId}. Overall Result: ${test.overallResult}`,
                 date: completionDate,
                 type: 'Testing',
-                status: test.status === 'Completed' ? 'Complete' : 'Pending'
+                status: test.overallResult === 'Pass' ? 'Complete' : (test.overallResult === 'OOS' ? 'Warning' : 'Pending')
             });
         });
 
-        // 4. Find Release (COA)
+        // 4. Stability Studies (R&D / Stability Dept)
+        const stability = state.stabilityProtocols.filter(s => s.batchNumber === batchNumber);
+        stability.forEach((study, sIdx) => {
+            study.timePoints.forEach((tp, tpIdx) => {
+                if (tp.status !== 'Pending') {
+                    timeline.push({
+                        id: `stability-${sIdx}-${tpIdx}`,
+                        title: `Stability: ${tp.label} (${study.studyType})`,
+                        description: `Condition: ${study.storageConditions.map(c => c.condition).join(', ')}. Status: ${tp.status}`,
+                        date: tp.pullDate ? new Date(tp.pullDate).toISOString().split('T')[0] : new Date(tp.scheduledDate).toISOString().split('T')[0],
+                        type: 'Testing',
+                        status: tp.status === 'Completed' ? 'Complete' : (tp.status === 'OOS' ? 'Warning' : 'Pending')
+                    });
+                }
+            });
+        });
+
+        // 5. Deviations (QA Department)
+        const deviations = state.deviations.filter(d => d.affectedBatch === batchNumber);
+        deviations.forEach((dev, index) => {
+            timeline.push({
+                id: `dev-${index}`,
+                title: `QA: Deviation Logged (${dev.type})`,
+                description: `${dev.title} - ${dev.description}. Status: ${dev.status}`,
+                date: new Date(dev.discoveryDate).toISOString().split('T')[0],
+                type: 'Deviation',
+                status: dev.status === 'Closed' ? 'Complete' : 'Warning'
+            });
+        });
+
+        // 6. Release (Regulatory/QA)
         const coa = state.coaRecords.find(c => c.batchNumber === batchNumber);
         if (coa) {
             timeline.push({
                 id: 'release',
-                title: 'Batch Release',
-                description: `Approved by ${coa.approvedBy}. Status: ${coa.status}`,
+                title: `QA Release: ${coa.type} COA`,
+                description: `Batch finalized and certified by ${coa.approvedBy}. Analysis No: ${coa.analysisNo}`,
                 date: coa.issueDate,
                 type: 'Release',
                 status: coa.status === 'Released' ? 'Complete' : 'Pending'
