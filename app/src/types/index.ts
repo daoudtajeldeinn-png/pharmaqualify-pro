@@ -116,6 +116,7 @@ export interface TestParameter {
   tolerance?: number;
   isQualitative: boolean;
   qualitativeOptions?: string[];
+  qualitativeSpecification?: string; // For descriptive specs like "White, round tablets"
 }
 
 export type TestCategory =

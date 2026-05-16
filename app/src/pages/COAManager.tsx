@@ -367,12 +367,29 @@ export function COAManagerPage() {
                                     const batchQuery = formData.batchNumber?.trim().toLowerCase();
                                     const results = state.testResults.filter(r => r.batchNumber?.trim().toLowerCase() === batchQuery);
                                     if (results.length > 0) {
-                                      const fetchedTests = results.flatMap(r => r.parameters.map(p => ({
-                                        test: p.parameterName,
-                                        specification: `${p.minValue || ''} - ${p.maxValue || ''} ${p.unit || ''}`,
-                                        result: String(p.value || ''),
-                                        status: p.result === 'Pass' ? 'Pass' : 'Fail'
-                                      })));
+                                      const fetchedTests = results.flatMap(r => {
+                                        // Find the test method to get the actual specifications
+                                        const method = state.testMethods.find(m => m.id === r.testMethodId);
+                                        return r.parameters.map(p => {
+                                          const paramSpec = method?.parameters.find(ps => ps.id === p.parameterId);
+                                          let specString = '';
+                                          
+                                          if (paramSpec?.isQualitative) {
+                                            specString = paramSpec.qualitativeSpecification || 'Descriptive';
+                                          } else if (paramSpec) {
+                                            const min = paramSpec.minValue !== undefined ? paramSpec.minValue : '';
+                                            const max = paramSpec.maxValue !== undefined ? paramSpec.maxValue : '';
+                                            specString = min || max ? `${min}${min && max ? ' - ' : ''}${max} ${paramSpec.unit || ''}` : 'N/A';
+                                          }
+
+                                          return {
+                                            test: p.parameterName,
+                                            specification: specString,
+                                            result: String(p.value || ''),
+                                            status: p.result === 'Pass' ? 'Pass' : 'Fail'
+                                          };
+                                        });
+                                      });
                                       setFormData({
                                         ...formData,
                                         testResults: fetchedTests as any

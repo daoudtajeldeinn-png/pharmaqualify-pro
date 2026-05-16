@@ -94,7 +94,7 @@ export function TestResultForm({
     let result: 'Pass' | 'Fail' | 'Pending' = 'Pending';
 
     if (param.isQualitative) {
-      result = value === param.qualitativeOptions?.[0] ? 'Pass' : 'Fail';
+      result = value === 'Complies' ? 'Pass' : value === 'Does Not Comply' ? 'Fail' : 'Pending';
     } else {
       const numValue = typeof value === 'string' ? parseFloat(value) : value;
       if (!isNaN(numValue)) {
@@ -246,14 +246,23 @@ export function TestResultForm({
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="font-medium">{param.name}</h4>
-                        <p className="text-sm text-slate-500">
-                          المعيار:{' '}
-                          {param.minValue !== undefined &&
-                            `من ${param.minValue}`}{' '}
-                          {param.maxValue !== undefined &&
-                            `إلى ${param.maxValue}`}{' '}
-                          {param.unit}
-                        </p>
+                        <div className="text-sm text-slate-500">
+                          {param.isQualitative ? (
+                            <div className="bg-blue-50 p-2 rounded border border-blue-100 mt-1">
+                              <span className="font-bold text-blue-700">المواصفة الوصفية (Spec):</span>
+                              <p className="mt-1">{param.qualitativeSpecification || 'N/A'}</p>
+                            </div>
+                          ) : (
+                            <span>
+                              المعيار:{' '}
+                              {param.minValue !== undefined &&
+                                `من ${param.minValue}`}{' '}
+                              {param.maxValue !== undefined &&
+                                `إلى ${param.maxValue}`}{' '}
+                              {param.unit}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <Badge
                         variant="outline"
@@ -276,37 +285,60 @@ export function TestResultForm({
                           <AlertTriangle className="ml-1 h-3 w-3" />
                         )}
                         {result?.result === 'Pass'
-                          ? 'مطابق'
+                          ? 'مطابق (Complies)'
                           : result?.result === 'Fail'
-                            ? 'غير مطابق'
+                            ? 'غير مطابق (Does Not Comply)'
                             : 'معلق'}
                       </Badge>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <Input
-                        type={param.isQualitative ? 'text' : 'number'}
-                        step="0.01"
-                        value={result?.value || ''}
-                        onChange={(e) =>
-                          updateParameterResult(
-                            index,
-                            param.isQualitative
-                              ? e.target.value
-                              : parseFloat(e.target.value)
-                          )
-                        }
-                        placeholder={
-                          param.isQualitative
-                            ? 'أدخل النتيجة النوعية'
-                            : 'أدخل القيمة العددية'
-                        }
-                        className="flex-1"
-                      />
-                      {param.unit && (
-                        <span className="text-sm text-slate-500 w-16">
-                          {param.unit}
-                        </span>
+                      {param.isQualitative ? (
+                        <div className="flex gap-2 w-full">
+                          <Button
+                            type="button"
+                            variant={result?.value === 'Complies' ? 'default' : 'outline'}
+                            className={cn(
+                              "flex-1",
+                              result?.value === 'Complies' && "bg-green-600 hover:bg-green-700"
+                            )}
+                            onClick={() => updateParameterResult(index, 'Complies')}
+                          >
+                            مطابق (Complies)
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={result?.value === 'Does Not Comply' ? 'default' : 'outline'}
+                            className={cn(
+                              "flex-1",
+                              result?.value === 'Does Not Comply' && "bg-red-600 hover:bg-red-700"
+                            )}
+                            onClick={() => updateParameterResult(index, 'Does Not Comply')}
+                          >
+                            غير مطابق (Does Not Comply)
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Input
+                            type="number"
+                            step="0.0001"
+                            value={result?.value || ''}
+                            onChange={(e) =>
+                              updateParameterResult(
+                                index,
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            placeholder="أدخل القيمة العددية"
+                            className="flex-1"
+                          />
+                          {param.unit && (
+                            <span className="text-sm text-slate-500 w-16">
+                              {param.unit}
+                            </span>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

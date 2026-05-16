@@ -75,6 +75,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const mfrRecord: Record<string, any> = {};
         dbMFRs.forEach(mfr => { mfrRecord[mfr.id] = mfr; });
 
+        // MIGRATION: Ensure all initial sample MFRs are in the database
+        const missingMFRs = Object.values(initialState.masterFormulas).filter(m => !mfrRecord[m.id]);
+        if (missingMFRs.length > 0) {
+          console.log(`Migrating ${missingMFRs.length} sample MFRs to database...`);
+          await db.masterFormulas.bulkPut(missingMFRs);
+          missingMFRs.forEach(m => { mfrRecord[m.id] = m; });
+        }
+
+        // MIGRATION: Ensure all initial sample BMRs are in the database
+        const bmrIds = new Set(batchRecords.map(b => b.id));
+        const missingBMRs = initialState.batchRecords.filter(b => !bmrIds.has(b.id));
+        if (missingBMRs.length > 0) {
+          console.log(`Migrating ${missingBMRs.length} sample BMRs to database...`);
+          await db.batchRecords.bulkPut(missingBMRs);
+          batchRecords.push(...missingBMRs);
+        }
+
         // Dispatch all loaded data to state
         dispatch({
           type: 'LOAD_DB_DATA', payload: {
@@ -101,7 +118,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             activities,
             materialMovements,
             reconciliationRecords,
-            masterFormulas: dbMFRs.length > 0 ? mfrRecord : initialState.masterFormulas,
+            masterFormulas: mfrRecord,
           }
         });
 

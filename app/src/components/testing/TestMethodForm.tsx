@@ -272,66 +272,6 @@ export function TestMethodForm({ testMethod, onSubmit, onCancel }: TestMethodFor
                         placeholder="مثال: %"
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>القيمة الدنيا</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={param.minValue || ''}
-                        onChange={(e) =>
-                          updateParameter(index, {
-                            minValue: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="أدخل القيمة الدنيا"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>القيمة القصوى</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={param.maxValue || ''}
-                        onChange={(e) =>
-                          updateParameter(index, {
-                            maxValue: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="أدخل القيمة القصوى"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>القيمة الاسمية</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={param.nominalValue || ''}
-                        onChange={(e) =>
-                          updateParameter(index, {
-                            nominalValue: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="أدخل القيمة الاسمية"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>السماح</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={param.tolerance || ''}
-                        onChange={(e) =>
-                          updateParameter(index, {
-                            tolerance: parseFloat(e.target.value) || undefined,
-                          })
-                        }
-                        placeholder="أدخل قيمة السماح"
-                      />
-                    </div>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -345,9 +285,86 @@ export function TestMethodForm({ testMethod, onSubmit, onCancel }: TestMethodFor
                       className="rounded border-slate-300"
                     />
                     <Label htmlFor={`qualitative-${index}`} className="text-sm">
-                      معيار نوعي (Qualitative)
+                      معيار نوعي / وصفي (Qualitative/Descriptive)
                     </Label>
                   </div>
+
+                  {param.isQualitative ? (
+                    <div className="space-y-2">
+                      <Label>وصف معيار القبول (Acceptance Criteria Description) *</Label>
+                      <Textarea
+                        value={param.qualitativeSpecification || ''}
+                        onChange={(e) =>
+                          updateParameter(index, { qualitativeSpecification: e.target.value })
+                        }
+                        placeholder="مثال: White to off-white colored, smooth round, flat with break line..."
+                        rows={3}
+                        required
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>القيمة الدنيا (Min Value)</Label>
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          value={param.minValue || ''}
+                          onChange={(e) =>
+                            updateParameter(index, {
+                              minValue: parseFloat(e.target.value) || undefined,
+                            })
+                          }
+                          placeholder="أدخل القيمة الدنيا"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>القيمة القصوى (Max Value)</Label>
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          value={param.maxValue || ''}
+                          onChange={(e) =>
+                            updateParameter(index, {
+                              maxValue: parseFloat(e.target.value) || undefined,
+                            })
+                          }
+                          placeholder="أدخل القيمة القصوى"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>القيمة الاسمية (Nominal Value)</Label>
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          value={param.nominalValue || ''}
+                          onChange={(e) =>
+                            updateParameter(index, {
+                              nominalValue: parseFloat(e.target.value) || undefined,
+                            })
+                          }
+                          placeholder="أدخل القيمة الاسمية"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>السماح (Tolerance +/-)</Label>
+                        <Input
+                          type="number"
+                          step="0.0001"
+                          value={param.tolerance || ''}
+                          onChange={(e) =>
+                            updateParameter(index, {
+                              tolerance: parseFloat(e.target.value) || undefined,
+                            })
+                          }
+                          placeholder="أدخل قيمة السماح"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
