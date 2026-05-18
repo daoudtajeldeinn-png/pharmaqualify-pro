@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '@/hooks/useStore';
+import { useDelete } from '@/hooks/useDelete';
+import { useSecurity } from '@/components/security/SecurityProvider';
 import { ProductTable } from '@/components/products/ProductTable';
 import { ProductForm } from '@/components/products/ProductForm';
 import { Button } from '@/components/ui/button';
@@ -19,11 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Pill } from 'lucide-react';
+import { Plus, Pill, ShieldAlert } from 'lucide-react';
 import type { PharmaceuticalProduct } from '@/types';
 
 export function Products() {
   const { state, dispatch } = useStore();
+  const { user } = useSecurity();
+  const { canDelete, handleDelete, isDeleting } = useDelete();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<PharmaceuticalProduct | null>(null);
@@ -40,23 +44,34 @@ export function Products() {
   };
 
   const handleDelete = (product: PharmaceuticalProduct) => {
+    if (!canDelete) {
+      return; // Button is hidden for non-admins, but guard anyway
+    }
     setSelectedProduct(product);
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedProduct) {
-      dispatch({ type: 'DELETE_PRODUCT', payload: selectedProduct.id });
-      dispatch({
-        type: 'ADD_ACTIVITY',
-        payload: {
-          id: crypto.randomUUID(),
-          type: 'Product_Updated',
-          description: `Deleted product: ${selectedProduct.name}`,
-          user: 'System',
-          timestamp: new Date(),
-        },
-      });
+  const confirmDelete = async () => {
+    if (!selectedProduct) return;
+    const success = await handleDelete(
+      'products',
+      selectedProduct.id,
+      selectedProduct.name,
+      () => {
+        dispatch({ type: 'DELETE_PRODUCT', payload: selectedProduct.id });
+        dispatch({
+          type: 'ADD_ACTIVITY',
+          payload: {
+            id: crypto.randomUUID(),
+            type: 'Product_Updated',
+            description: `[DELETE] Product: "${selectedProduct.name}" by ${user?.username}`,
+            user: user?.name || 'Unknown',
+            timestamp: new Date(),
+          },
+        });
+      }
+    );
+    if (success) {
       setIsDeleteDialogOpen(false);
       setSelectedProduct(null);
     }
@@ -68,7 +83,6 @@ export function Products() {
   };
 
   const handleTest = (product: PharmaceuticalProduct) => {
-    // Navigate to testing page with product pre-selected (HashRouter format)
     window.location.hash = '#testing/results?productId=' + product.id;
   };
 
@@ -113,18 +127,26 @@ export function Products() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Pharmaceutical Product Repository</h1>
-          <p className="text-slate-500">Managing Manufacturing Inventory & Raw Material Database</p>
+          <p className="text-slate-500">Managing Manufacturing Inventory &amp; Raw Material Database</p>
         </div>
-        <Button onClick={handleAdd} className="bg-indigo-600">
-          <Plus className="mr-2 h-4 w-4" />
-          Register New Product
-        </Button>
+        <div className="flex items-center gap-3">
+          {!canDelete && (
+            <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+              <ShieldAlert className="h-3.5 w-3.5" />
+              Read-only — deletions require Admin or QA Admin
+            </div>
+          )}
+          <Button onClick={handleAdd} className="bg-indigo-600">
+            <Plus className="mr-2 h-4 w-4" />
+            Register New Product
+          </Button>
+        </div>
       </div>
 
       <ProductTable
         products={state.products}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={canDelete ? handleDelete : undefined}
         onView={handleView}
         onTest={handleTest}
       />
@@ -214,17 +236,27 @@ export function Products() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-red-600">Confirm Permanent Deletion</AlertDialogTitle>
+            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5" />
+              Confirm Permanent Deletion
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you absolute certain you want to delete product &quot;{selectedProduct?.name}&quot;?
+              You are about to permanently delete product &quot;{selectedProduct?.name}&quot;.
               <br />
-              This action strictly permanently removes the record from the database.
+              <strong>This record will be removed from the local database AND the Supabase cloud.</strong>
+              <br /><br />
+              This action is logged under your account: <strong>{user?.name} ({user?.username})</strong>.
+              Recovery requires Admin authorization.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Discard</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600">
-              Confirm Delete
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Confirm Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
