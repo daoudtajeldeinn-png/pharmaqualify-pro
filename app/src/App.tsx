@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { StoreProvider, useStore } from '@/hooks/useStore';
 import { SecurityProvider, useSecurity, LoginPage } from '@/components/security/SecurityProvider';
@@ -131,28 +131,30 @@ function AppLayout() {
   const { user } = useSecurity();
   const { status } = useLicense();
   const { reloadFromDB } = useStore();
+  const backgroundSyncStarted = useRef(false);
 
-  // Background Sync on App Load
+  // Background Sync on App Load (once per session — avoids duplicate runs from re-renders)
   useEffect(() => {
     const performBackgroundSync = async () => {
-      if (user && status.isValid) {
-        console.log('AppLayout: Initializing background cloud synchronization...');
-        try {
-          const { syncAllTables } = await import('@/services/CloudSyncService');
-          const result = await syncAllTables();
-          console.log(`AppLayout: Background sync complete. Success: ${result.successCount}, Fail: ${result.failCount}`);
-          await reloadFromDB();
-          console.log('AppLayout: State reloaded from Dexie DB post-sync.');
-        } catch (e) {
-          console.error('AppLayout: Background sync failed', e);
-        }
+      if (!user || !status.isValid || backgroundSyncStarted.current) return;
+      backgroundSyncStarted.current = true;
+
+      console.log('AppLayout: Initializing background cloud synchronization...');
+      try {
+        const { syncAllTables } = await import('@/services/CloudSyncService');
+        const result = await syncAllTables();
+        console.log(`AppLayout: Background sync complete. Success: ${result.successCount}, Fail: ${result.failCount}`);
+        await reloadFromDB();
+        console.log('AppLayout: State reloaded from Dexie DB post-sync.');
+      } catch (e) {
+        console.error('AppLayout: Background sync failed', e);
+        backgroundSyncStarted.current = false;
       }
     };
 
-    // Delay background sync slightly to prioritize initial render
     const timer = setTimeout(performBackgroundSync, 3000);
     return () => clearTimeout(timer);
-  }, [user?.id, status.isValid]);
+  }, [user?.id, status.isValid, reloadFromDB]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">

@@ -26,7 +26,8 @@ export interface DeletedRecord {
 }
 
 const LOCAL_KEY = 'pqms_deleted_records';
-const CLOUD_TABLE_ALIASES = ['deletedRecords', 'deletedrecords', 'deleted_records'];
+// PostgREST exposes unquoted Postgres names as lowercase (e.g. deletedrecords).
+const CLOUD_TABLE_ALIASES = ['deletedrecords', 'deleted_records', 'deletedRecords'];
 
 /** undefined = not probed yet; null = no cloud table (local-only mode) */
 let resolvedCloudTable: string | null | undefined;
