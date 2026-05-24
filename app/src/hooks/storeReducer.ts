@@ -493,8 +493,12 @@ export function appReducerWithPersistence(state: AppState, action: Action): AppS
             db.products.put(action.payload); break;
         case 'DELETE_PRODUCT':
             db.products.delete(action.payload); break;
+        case 'ADD_TEST_METHOD': case 'UPDATE_TEST_METHOD':
+            db.testMethods.put(action.payload); break;
         case 'DELETE_TEST_METHOD':
             db.testMethods.delete(action.payload); break;
+        case 'ADD_TEST_RESULT': case 'UPDATE_TEST_RESULT':
+            db.testResults.put(action.payload); break;
         case 'DELETE_TEST_RESULT':
             db.testResults.delete(action.payload); break;
         case 'ADD_EQUIPMENT': case 'UPDATE_EQUIPMENT':
