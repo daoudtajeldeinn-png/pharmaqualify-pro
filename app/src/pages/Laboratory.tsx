@@ -65,6 +65,18 @@ export function LaboratoryPage() {
   const [, setIsStandardFormOpen] = useState(false);
   const [reagentGrade, setReagentGrade] = useState('');
   const [reagentUnit, setReagentUnit] = useState('');
+  const [newReagent, setNewReagent] = useState({
+    name: '',
+    casNumber: '',
+    manufacturer: '',
+    supplier: '',
+    quantity: '',
+    expiryDate: '',
+    dateReceived: new Date().toISOString().split('T')[0],
+    location: '',
+    storageConditions: '',
+    batchNumber: ''
+  });
 
   const gradeOptions = [
     { value: 'ACS', label: 'ACS Grade' },
@@ -139,6 +151,52 @@ export function LaboratoryPage() {
     });
 
     toast.success(`Material ${material.name} ${newStatus.toLowerCase()} successfully`);
+  };
+
+  const handleSaveReagent = () => {
+    if (!newReagent.name || !newReagent.expiryDate) {
+      toast.error('Please fill in required fields (Name and Expiry Date)');
+      return;
+    }
+
+    const reagent = {
+      id: crypto.randomUUID(),
+      ...newReagent,
+      quantity: parseFloat(newReagent.quantity) || 0,
+      expiryDate: new Date(newReagent.expiryDate),
+      dateReceived: new Date(newReagent.dateReceived),
+      grade: reagentGrade || 'Reagent',
+      unit: reagentUnit || 'mL',
+      status: 'Available' as const,
+      safetyInfo: {
+        hazardClass: '',
+        hazardStatements: [],
+        precautionaryStatements: [],
+        sdsFile: ''
+      }
+    };
+
+    dispatch({
+      type: 'ADD_CHEMICAL_REAGENT',
+      payload: reagent
+    });
+
+    toast.success('Reagent added successfully');
+    setIsReagentFormOpen(false);
+    setNewReagent({
+      name: '',
+      casNumber: '',
+      manufacturer: '',
+      supplier: '',
+      quantity: '',
+      expiryDate: '',
+      dateReceived: new Date().toISOString().split('T')[0],
+      location: '',
+      storageConditions: '',
+      batchNumber: ''
+    });
+    setReagentGrade('');
+    setReagentUnit('');
   };
 
   return (
@@ -467,11 +525,19 @@ export function LaboratoryPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Reagent Name *</Label>
-                <Input placeholder="e.g. Acetonitrile HPLC Grade" />
+                <Input 
+                  placeholder="e.g. Acetonitrile HPLC Grade" 
+                  value={newReagent.name}
+                  onChange={(e) => setNewReagent({...newReagent, name: e.target.value})}
+                />
               </div>
               <div className="space-y-2">
                 <Label>CAS Number Identification</Label>
-                <Input placeholder="e.g. 75-05-8" />
+                <Input 
+                  placeholder="e.g. 75-05-8" 
+                  value={newReagent.casNumber}
+                  onChange={(e) => setNewReagent({...newReagent, casNumber: e.target.value})}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -489,13 +555,22 @@ export function LaboratoryPage() {
               </div>
               <div className="space-y-2">
                 <Label>Manufacturer / Supplier</Label>
-                <Input placeholder="e.g. Merck / Sigma" />
+                <Input 
+                  placeholder="e.g. Merck / Sigma" 
+                  value={newReagent.manufacturer}
+                  onChange={(e) => setNewReagent({...newReagent, manufacturer: e.target.value})}
+                />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Net Quantity</Label>
-                <Input type="number" placeholder="0.00" />
+                <Input 
+                  type="number" 
+                  placeholder="0.00" 
+                  value={newReagent.quantity}
+                  onChange={(e) => setNewReagent({...newReagent, quantity: e.target.value})}
+                />
               </div>
               <div className="space-y-2">
                 <Label>UOM</Label>
@@ -511,13 +586,17 @@ export function LaboratoryPage() {
               </div>
               <div className="space-y-2">
                 <Label>Expiry Date *</Label>
-                <Input type="date" />
+                <Input 
+                  type="date" 
+                  value={newReagent.expiryDate}
+                  onChange={(e) => setNewReagent({...newReagent, expiryDate: e.target.value})}
+                />
               </div>
             </div>
           </div>
           <div className="flex justify-end gap-3 bg-slate-50 -mx-6 -mb-6 p-6 mt-4 border-t">
             <Button variant="outline" onClick={() => setIsReagentFormOpen(false)}>Cancel</Button>
-            <Button onClick={() => setIsReagentFormOpen(false)} className="bg-indigo-600 px-8">Save Inventory</Button>
+            <Button onClick={handleSaveReagent} className="bg-indigo-600 px-8">Save Inventory</Button>
           </div>
         </DialogContent>
       </Dialog>
