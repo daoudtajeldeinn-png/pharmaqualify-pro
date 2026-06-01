@@ -309,7 +309,7 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                 <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto bg-slate-50 p-0 border-none rounded-none shadow-2xl">
                     {selectedBMR && (
                         <>
-                            <div className="bg-white min-h-[297mm] w-full mx-auto p-12 shadow-inner print:p-0 font-serif">
+                            <div ref={printRef} className="bg-white min-h-[297mm] w-full mx-auto p-12 shadow-inner print:p-0 font-serif">
                             {/* Professional Header - A4 Style */}
                             <div className="flex justify-between items-start border-b-4 border-double border-slate-900 pb-8 mb-8">
                                 <div className="flex gap-6 items-center">
