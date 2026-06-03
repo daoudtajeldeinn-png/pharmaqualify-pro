@@ -53,6 +53,12 @@ function pickNewerRecord(
 function serializeForSupabase(item: Record<string, unknown>): Record<string, unknown> {
     const cleanItem = { ...item };
     
+    // Remove local-only soft delete flags to prevent Supabase schema errors
+    delete cleanItem.deleted_at;
+    delete cleanItem.deleted_by;
+    delete cleanItem.deletion_reason;
+    delete cleanItem.is_deleted;
+    
     const keys = Object.keys(cleanItem);
     for (const key of keys) {
         if (key !== key.toLowerCase()) {
