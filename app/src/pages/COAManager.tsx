@@ -33,8 +33,8 @@ export function COAManagerPage() {
     const initialFormState: Partial<COARecord> = {
         testResults: [{ test: '', specification: '', result: '', status: 'Pass' }],
         type: 'Finished Product',
-        manufacturer: 'Pharma Corp',
-        address: 'Industrial Zone, Phase 2, Pharmaceutical District',
+        manufacturer: '',
+        address: '',
         manufacturingDate: '',
         analysisDate: '',
         status: 'Draft',
@@ -197,8 +197,8 @@ export function COAManagerPage() {
             analysisDate: formData.analysisDate || '',
             expiryDate: formData.expiryDate || '',
             issueDate: formData.issueDate || new Date().toISOString().split('T')[0],
-            manufacturer: formData.manufacturer || 'Pharma Corp',
-            address: formData.address || 'Industrial Zone, Phase 2, Pharmaceutical District',
+            manufacturer: formData.manufacturer || '',
+            address: formData.address || '',
             testResults: formData.type === 'Finished Product' ? sortFinishedProductTests(rawTests) : rawTests,
             marketComplaintStatus: formData.marketComplaintStatus || 'Verified and Compliant',
             analyzedBy: formData.analyzedBy || '',
@@ -469,8 +469,8 @@ export function COAManagerPage() {
                             <div className="space-y-1"><Label>Analysis Date</Label><Input type="date" value={formData.analysisDate || ''} onChange={e => setFormData({ ...formData, analysisDate: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Expiry Date</Label><Input type="date" value={formData.expiryDate || ''} onChange={e => setFormData({ ...formData, expiryDate: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Issue Date</Label><Input type="date" value={formData.issueDate || ''} onChange={e => setFormData({ ...formData, issueDate: e.target.value })} className="border-slate-300" /></div>
-                            <div className="space-y-1"><Label>Manufacturer</Label><Input value={formData.manufacturer || ''} onChange={e => setFormData({ ...formData, manufacturer: e.target.value })} className="border-slate-300" /></div>
-                            <div className="space-y-1"><Label>Manufacturing Address</Label><Input value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className="border-slate-300" /></div>
+                            <div className="space-y-1"><Label>Manufacturer *</Label><Input value={formData.manufacturer || ''} onChange={e => setFormData({ ...formData, manufacturer: e.target.value })} className="border-slate-300" placeholder="Enter company name" /></div>
+                            <div className="space-y-1"><Label>Manufacturing Address *</Label><Input value={formData.address || ''} onChange={e => setFormData({ ...formData, address: e.target.value })} className="border-slate-300" placeholder="Enter company address" /></div>
                             <div className="space-y-1"><Label>Generic Name</Label><Input value={formData.genericName || ''} onChange={e => setFormData({ ...formData, genericName: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Trade Name (Brand)</Label><Input value={formData.brandName || ''} onChange={e => setFormData({ ...formData, brandName: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Quantity (QTY)</Label><Input value={formData.quantity || ''} onChange={e => setFormData({ ...formData, quantity: e.target.value })} className="border-slate-300" /></div>

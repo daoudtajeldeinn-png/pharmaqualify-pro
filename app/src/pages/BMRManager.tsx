@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react';
-import { Plus, CheckCircle2, Printer, ClipboardCheck, Activity, Thermometer, ShieldCheck, PenLine, AlertTriangle, Scale, AlertCircle, Lock } from 'lucide-react';
+import { Plus, CheckCircle2, Printer, ClipboardCheck, Activity, Thermometer, ShieldCheck, PenLine, AlertTriangle, Scale, AlertCircle, Lock, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+<<<<<<< HEAD
 const formatDate = (date: string | Date | undefined) => {
     if (!date) return '';
     try {
@@ -25,6 +26,8 @@ const formatDate = (date: string | Date | undefined) => {
     }
 };
 
+=======
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
 export function BMRManagerPage() {
     const { state, dispatch } = useStore();
     const { canModify, canDelete, user } = useRoleAccess();
@@ -33,6 +36,7 @@ export function BMRManagerPage() {
     const [showIssueDialog, setShowIssueDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [selectedBMR, setSelectedBMR] = useState<BatchRecord | null>(null);
+    const [mfrSearchTerm, setMfrSearchTerm] = useState('');
     const [newBatch, setNewBatch] = useState<Partial<BatchRecord>>({
         mfgDate: new Date().toISOString().split('T')[0],
         status: 'Issuance'
@@ -42,11 +46,14 @@ export function BMRManagerPage() {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: selectedBMR ? `BMR-${selectedBMR.batchNumber}` : 'BMR',
+<<<<<<< HEAD
         onBeforeGetContent: () => {
             return new Promise((resolve) => {
                 setTimeout(resolve, 100);
             });
         },
+=======
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
     });
     const [editingBMR, setEditingBMR] = useState<BatchRecord | null>(null);
 
@@ -232,6 +239,16 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
         });
     }, [selectedBMR, state.materialMovements, masterFormulas]);
 
+    const filteredMFRs = useMemo(() => {
+        const mfrs = Object.values(masterFormulas);
+        if (!mfrSearchTerm) return mfrs;
+        const term = mfrSearchTerm.toLowerCase();
+        return mfrs.filter((mfr: any) =>
+            mfr.mfrNumber.toLowerCase().includes(term) ||
+            mfr.productName.toLowerCase().includes(term)
+        );
+    }, [masterFormulas, mfrSearchTerm]);
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex items-center justify-between border-b pb-4">
@@ -356,16 +373,28 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Manufacturing Date</Label>
+<<<<<<< HEAD
                                     <div className="text-sm font-black text-slate-900">{formatDate(selectedBMR.mfgDate)}</div>
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Expiry Date</Label>
                                     <div className="text-sm font-black text-rose-600">{formatDate(selectedBMR.expiryDate)}</div>
+=======
+                                    <div className="text-sm font-black text-slate-900">{selectedBMR.mfgDate}</div>
+                                </div>
+                                <div>
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Expiry Date</Label>
+                                    <div className="text-sm font-black text-rose-600">{selectedBMR.expiryDate}</div>
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
                                 </div>
                              </div>
 
                                 <div className="flex gap-4 mb-10 pb-6 border-b border-slate-100">
+<<<<<<< HEAD
                                     <Button variant="outline" className="gap-2 font-black uppercase text-[10px] tracking-widest h-11 px-6 border-slate-200 hover:bg-slate-50 transition-all shadow-sm" onClick={handlePrint}>
+=======
+                                    <Button variant="outline" className="gap-2 font-black uppercase text-[10px] tracking-widest h-11 px-6 border-slate-200 hover:bg-slate-50 transition-all shadow-sm" onClick={() => handlePrint()}>
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
                                         <Printer className="h-4 w-4 text-slate-500" /> Print Full BMR
                                     </Button>
                                     <Button className="bg-slate-900 hover:bg-black text-white font-black uppercase text-[10px] tracking-widest h-11 px-10 shadow-lg shadow-slate-200 transition-all">
@@ -394,7 +423,11 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                         </div>
                                         <div className="p-4 bg-slate-50 rounded-xl border-2 border-slate-100">
                                             <Label className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Mfg/Exp Date</Label>
+<<<<<<< HEAD
                                             <div className="text-lg font-black text-slate-800">{formatDate(selectedBMR.mfgDate)} / {formatDate(selectedBMR.expiryDate)}</div>
+=======
+                                            <div className="text-lg font-black text-slate-800">{selectedBMR.mfgDate} / {selectedBMR.expiryDate}</div>
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
                                         </div>
                                     </div>
 
@@ -976,8 +1009,13 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                                     <td><strong>MFR Reference:</strong></td><td>{selectedBMR.mfrId.toUpperCase()}</td>
                                 </tr>
                                 <tr>
+<<<<<<< HEAD
                                     <td><strong>Mfg Date:</strong></td><td>{formatDate(selectedBMR.mfgDate)}</td>
                                     <td><strong>Expiry Date:</strong></td><td>{formatDate(selectedBMR.expiryDate)}</td>
+=======
+                                    <td><strong>Mfg Date:</strong></td><td>{selectedBMR.mfgDate}</td>
+                                    <td><strong>Expiry Date:</strong></td><td>{selectedBMR.expiryDate}</td>
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
                                 </tr>
                             </tbody>
                         </table>
@@ -1077,6 +1115,15 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label className="text-xs font-bold uppercase text-slate-400">Select Production Master (MFR)</Label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Input
+                                    placeholder="Search MFR by number or name..."
+                                    value={mfrSearchTerm}
+                                    onChange={(e) => setMfrSearchTerm(e.target.value)}
+                                    className="pl-9 text-sm font-bold"
+                                />
+                            </div>
                             <select 
                                 className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-bold" 
                                 onChange={(e) => {
@@ -1091,7 +1138,7 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                                 }}
                             >
                                 <option value="">CHOOSE MASTER FORMULA...</option>
-                                {Object.values(masterFormulas).map((mfr: any) => (
+                                {filteredMFRs.map((mfr: any) => (
                                     <option key={mfr.id} value={mfr.id}>{mfr.mfrNumber} | {mfr.productName}</option>
                                 ))}
                             </select>

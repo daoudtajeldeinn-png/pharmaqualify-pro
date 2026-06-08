@@ -36,10 +36,24 @@ export class SoftDeleteService {
         deletion_reason: reason
       };
 
+<<<<<<< HEAD
       // 4. Update Dexie
       await table.put(updatedRecord);
 
       // 5. Update Supabase - delete from main table to propagate globally and prevent resurrection
+=======
+      // 4. Save soft-delete snapshot temporarily for tombstone
+      // (so recovery can restore from snapshot if needed)
+      await table.put(updatedRecord);
+
+      // 5. Record tombstone (saves snapshot for potential recovery)
+      await recordDeletion(tableName, recordId, userName, oldRecord, reason);
+
+      // 6. Physically remove from Dexie so sync never re-pushes deleted_at fields
+      await table.delete(recordId);
+
+      // 7. Delete from Supabase to propagate globally
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
       try {
         await supabase
           .from(tableName)
@@ -49,9 +63,12 @@ export class SoftDeleteService {
         console.warn('SoftDeleteService: Supabase delete failed:', cloudErr);
       }
 
+<<<<<<< HEAD
       // 6. Record tombstone to prevent sync issues
       await recordDeletion(tableName, recordId, userName, oldRecord, reason);
 
+=======
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
       return { success: true };
     } catch (err: any) {
       console.error('SoftDeleteService: softDelete failed:', err);

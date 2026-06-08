@@ -230,4 +230,85 @@ export async function generateInventoryReportPDF(materials: RawMaterial[]): Prom
   doc.text(`Total Items: ${materials.length}`, 20, y + 10);
 
   doc.save(`Material-Inventory-Report-${new Date().toISOString().split('T')[0]}.pdf`);
+<<<<<<< HEAD
+=======
+}
+
+export async function generateAnalyticalWorksheet(material: RawMaterial): Promise<void> {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({
+    orientation: 'p',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  doc.setLineWidth(0.5);
+  doc.rect(5, 5, 200, 287);
+
+  doc.setFont('times', 'bold');
+  doc.setFontSize(18);
+  doc.text('ANALYTICAL WORKSHEET', 105, 20, { align: 'center' });
+  doc.setFontSize(10);
+  doc.text('QUALITY CONTROL LABORATORY', 105, 26, { align: 'center' });
+  doc.line(20, 30, 190, 30);
+
+  doc.setFontSize(11);
+  doc.setFont('times', 'normal');
+  doc.text(`Material Name:`, 15, 40);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.name}`, 50, 40);
+
+  doc.setFont('times', 'normal');
+  doc.text(`Batch Number:`, 15, 48);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.batchNumber}`, 50, 48);
+
+  doc.setFont('times', 'normal');
+  doc.text(`Type:`, 130, 40);
+  doc.text(`${material.type}`, 160, 40);
+
+  doc.text(`Status:`, 130, 48);
+  doc.text(`${material.status}`, 160, 48);
+
+  let y = 60;
+  doc.setFont('times', 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(15, y, 180, 8, 'F');
+  doc.rect(15, y, 180, 8);
+  doc.text('Test Parameter', 20, y + 5);
+  doc.text('Specification', 80, y + 5);
+  doc.text('Result', 140, y + 5);
+  doc.text('Status', 170, y + 5);
+
+  y += 8;
+  doc.setFont('times', 'normal');
+
+  if (material.tests && material.tests.length > 0) {
+    material.tests.forEach(test => {
+      if (y > 250) {
+        doc.addPage();
+        doc.rect(5, 5, 200, 287);
+        y = 20;
+      }
+      doc.rect(15, y, 180, 10);
+      doc.text(String(test.name || '').substring(0, 30), 20, y + 6);
+      doc.text(String(test.spec || '').substring(0, 30), 80, y + 6);
+      doc.text(String(test.result || '').substring(0, 20), 140, y + 6);
+      doc.text(String(test.status || ''), 170, y + 6);
+      y += 10;
+    });
+  } else {
+    doc.text('No tests assigned.', 20, y + 10);
+    y += 10;
+  }
+
+  y += 20;
+  doc.line(15, y, 70, y);
+  doc.text('Analyst Signature & Date', 15, y + 5);
+
+  doc.line(125, y, 180, y);
+  doc.text('Reviewer Signature & Date', 125, y + 5);
+
+  doc.save(`Analytical-Worksheet-${material.batchNumber}.pdf`);
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
 }

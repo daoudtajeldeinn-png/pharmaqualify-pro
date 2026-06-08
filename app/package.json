@@ -1,7 +1,11 @@
 {
   "name": "my-app",
   "private": true,
+<<<<<<< HEAD
   "version": "4.3.2",
+=======
+  "version": "4.3.3",
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
   "description": "Enterprise Pharmaceutical Quality Management System - Frontend App",
   "author": "Dr. Daoud Tajeldeinn",
   "type": "module",

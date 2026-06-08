@@ -184,11 +184,25 @@ export async function syncTombstonesFromCloud(): Promise<void> {
     }
 
     const local = loadLocalTombstones();
+<<<<<<< HEAD
     const localMap = new Map(local.map(t => [`${t.tableName}__${t.id}`, t]));
 
     data.forEach((row: any) => {
       const key = `${row.table_name}__${row.record_id}`;
       localMap.set(key, {
+=======
+
+    // Merge into a single map keyed by `${tableName}__${recordId}`
+    const mergedMap = new Map<string, DeletedRecord>();
+
+    for (const t of local) {
+      mergedMap.set(`${t.tableName}__${t.id}`, t);
+    }
+
+    for (const row of data as any[]) {
+      const key = `${row.table_name}__${row.record_id}`;
+      mergedMap.set(key, {
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
         id: row.record_id,
         tableName: row.table_name,
         deletedAt: row.deleted_at,
@@ -197,9 +211,62 @@ export async function syncTombstonesFromCloud(): Promise<void> {
         snapshot: row.snapshot ? JSON.parse(row.snapshot) : undefined,
         recovered: row.recovered || false,
       });
+<<<<<<< HEAD
     });
 
     saveLocalTombstones(Array.from(localMap.values()));
+=======
+    }
+
+    const mergedList = Array.from(mergedMap.values());
+
+    // Two-way sync: local -> cloud for missing tombstones
+    const cloudKeys = new Set(data.map((row: any) => `${row.table_name}__${row.record_id}`));
+
+    await Promise.all(
+      local
+        .filter(t => !t.recovered)
+        .map(async (localTomb) => {
+          const key = `${localTomb.tableName}__${localTomb.id}`;
+          if (cloudKeys.has(key)) return;
+
+          try {
+            await supabase
+              .from(cloudTable)
+              .upsert(
+                {
+                  id: key,
+                  record_id: localTomb.id,
+                  table_name: localTomb.tableName,
+                  deleted_at: localTomb.deletedAt,
+                  deleted_by: localTomb.deletedBy,
+                  reason: localTomb.reason || null,
+                  snapshot: localTomb.snapshot ? JSON.stringify(localTomb.snapshot) : null,
+                  recovered: localTomb.recovered || false,
+                },
+                { onConflict: 'id' }
+              );
+          } catch (e) {
+            console.warn(`DeletedRecordsService: failed to push local tombstone ${key}:`, e);
+          }
+        })
+    );
+
+    // Purge remote business records for all active tombstones (including cloud-origin ones)
+    const activeTombstones = mergedList.filter(t => !t.recovered);
+    await Promise.all(
+      activeTombstones.map(async (t) => {
+        try {
+          await supabase.from(t.tableName).delete().eq('id', t.id);
+        } catch (e) {
+          console.warn(`DeletedRecordsService: failed to purge remote record ${t.tableName}:${t.id}:`, e);
+        }
+      })
+    );
+
+    // Save the fully merged tombstone list locally
+    saveLocalTombstones(mergedList);
+>>>>>>> a408499b0cc2463f1cffe1b7685f97485d7809f2
   } catch (err) {
     console.warn('DeletedRecordsService: syncTombstonesFromCloud failed:', err);
   }
