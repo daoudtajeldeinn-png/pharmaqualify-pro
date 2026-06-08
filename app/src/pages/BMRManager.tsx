@@ -14,6 +14,17 @@ import { useRoleAccess } from '@/hooks/useRoleAccess';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+const formatDate = (date: string | Date | undefined) => {
+    if (!date) return '';
+    try {
+        const d = typeof date === 'string' ? new Date(date) : date;
+        if (isNaN(d.getTime())) return String(date);
+        return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch (e) {
+        return String(date);
+    }
+};
+
 export function BMRManagerPage() {
     const { state, dispatch } = useStore();
     const { canModify, canDelete, user } = useRoleAccess();
@@ -31,6 +42,11 @@ export function BMRManagerPage() {
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: selectedBMR ? `BMR-${selectedBMR.batchNumber}` : 'BMR',
+        onBeforeGetContent: () => {
+            return new Promise((resolve) => {
+                setTimeout(resolve, 100);
+            });
+        },
     });
     const [editingBMR, setEditingBMR] = useState<BatchRecord | null>(null);
 
@@ -340,11 +356,11 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Manufacturing Date</Label>
-                                    <div className="text-sm font-black text-slate-900">{selectedBMR.mfgDate}</div>
+                                    <div className="text-sm font-black text-slate-900">{formatDate(selectedBMR.mfgDate)}</div>
                                 </div>
                                 <div>
                                     <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Expiry Date</Label>
-                                    <div className="text-sm font-black text-rose-600">{selectedBMR.expiryDate}</div>
+                                    <div className="text-sm font-black text-rose-600">{formatDate(selectedBMR.expiryDate)}</div>
                                 </div>
                              </div>
 
@@ -378,7 +394,7 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                         </div>
                                         <div className="p-4 bg-slate-50 rounded-xl border-2 border-slate-100">
                                             <Label className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Mfg/Exp Date</Label>
-                                            <div className="text-lg font-black text-slate-800">{selectedBMR.mfgDate} / {selectedBMR.expiryDate}</div>
+                                            <div className="text-lg font-black text-slate-800">{formatDate(selectedBMR.mfgDate)} / {formatDate(selectedBMR.expiryDate)}</div>
                                         </div>
                                     </div>
 
@@ -960,8 +976,8 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                                     <td><strong>MFR Reference:</strong></td><td>{selectedBMR.mfrId.toUpperCase()}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Mfg Date:</strong></td><td>{selectedBMR.mfgDate}</td>
-                                    <td><strong>Expiry Date:</strong></td><td>{selectedBMR.expiryDate}</td>
+                                    <td><strong>Mfg Date:</strong></td><td>{formatDate(selectedBMR.mfgDate)}</td>
+                                    <td><strong>Expiry Date:</strong></td><td>{formatDate(selectedBMR.expiryDate)}</td>
                                 </tr>
                             </tbody>
                         </table>

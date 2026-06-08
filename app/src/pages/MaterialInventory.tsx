@@ -373,7 +373,7 @@ const [materialForm, setMaterialForm] = useState({
     try {
       const d = typeof date === 'string' ? new Date(date) : date;
       if (isNaN(d.getTime())) return String(date);
-      return d.toLocaleDateString('en-GB');
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch (e) {
       return String(date);
     }
@@ -616,6 +616,7 @@ const [materialForm, setMaterialForm] = useState({
                 value={materialForm.supplier}
                 onChange={(e) => setMaterialForm(prev => ({ ...prev, supplier: e.target.value }))}
                 placeholder="Enter company name"
+                maxLength={200}
               />
             </div>
 
@@ -840,7 +841,7 @@ const [materialForm, setMaterialForm] = useState({
                       <div className="flex justify-between">
                         <span className="text-slate-500">Expiry Date:</span>
                         <span className={new Date(selectedMaterial.expiryDate) < new Date() ? 'text-red-600 font-bold' : ''}>
-                          {typeof selectedMaterial.expiryDate === 'object' ? (selectedMaterial.expiryDate as any).toLocaleDateString() : selectedMaterial.expiryDate}
+                          {formatDate(selectedMaterial.expiryDate)}
                         </span>
                       </div>
                       <div className="flex justify-between">

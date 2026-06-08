@@ -55,6 +55,17 @@ const gradeLabels: Record<string, string> = {
   Spectrophotometric: 'Spectrophotometric Grade',
 };
 
+const formatDate = (date: Date | string | undefined) => {
+  if (!date) return '';
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(d.getTime())) return String(date);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch (e) {
+    return String(date);
+  }
+};
+
 export function LaboratoryPage() {
   const { state, dispatch } = useStore();
   const now = useMemo(() => Date.now(), []);
@@ -467,11 +478,11 @@ export function LaboratoryPage() {
                           {std.purity ? `${std.purity}%` : std.potency ? `${std.potency}%` : '-'}
                         </TableCell>
                         <TableCell>
-                          {new Date(std.dateReceived).toLocaleDateString('en-GB')}
+                          {formatDate(std.dateReceived)}
                         </TableCell>
                         <TableCell>
                           <span className={cn("text-sm transition-colors", expiryStatus.color)}>
-                            {typeof std.expiryDate === 'object' ? (std.expiryDate as any).toLocaleDateString('en-GB') : new Date(std.expiryDate).toLocaleDateString('en-GB')}
+                            {formatDate(std.expiryDate)}
                           </span>
                         </TableCell>
                         <TableCell>
