@@ -1,0 +1,8 @@
+version: 4.2.6
+files:
+  - url: PharmaQMS-Enterprise-Setup-4.2.6.exe
+    sha512: YB43uKlwh5cqSyrVzhax85z47zK+oOkCRYlPjwfpu6TNdtEU9Em40xLYur0Hn0/Lg3IAgrJYQBo3HuGGxYjW8Q==
+    size: 93038249
+path: PharmaQMS-Enterprise-Setup-4.2.6.exe
+sha512: YB43uKlwh5cqSyrVzhax85z47zK+oOkCRYlPjwfpu6TNdtEU9Em40xLYur0Hn0/Lg3IAgrJYQBo3HuGGxYjW8Q==
+releaseDate: '2026-05-04T08:08:25.972Z'
