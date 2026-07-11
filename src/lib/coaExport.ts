@@ -55,53 +55,108 @@ export async function generateCOAPDF(material: RawMaterial): Promise<void> {
   // Header Section
   doc.setFont('times', 'bold');
   doc.setFontSize(22);
-  doc.text('PHARMA CORP', 105, 20, { align: 'center' });
+  doc.text('SUDANESE CHEMICAL INDUSTRIAL', 105, 20, { align: 'center' });
 
-  doc.setFont('times', 'italic');
-  doc.setFontSize(10);
-  doc.text('Industrial Zone, Phase 2, Pharmaceutical District', 105, 25, { align: 'center' });
-
-  doc.setFont('times', 'bold');
+  doc.setFont('times', 'normal');
   doc.setFontSize(12);
-  doc.text('QUALITY CONTROL DEPARTMENT', 105, 32, { align: 'center' });
+  doc.text('GMP Certified Production Block A', 105, 26, { align: 'center' });
+  doc.text('Quality Control Department', 105, 31, { align: 'center' });
 
   doc.setLineWidth(1);
+  doc.line(20, 34, 190, 34);
   doc.line(20, 35, 190, 35);
-  doc.line(20, 36, 190, 36);
 
-  doc.setFontSize(18);
-  doc.text('CERTIFICATE OF ANALYSIS', 105, 45, { align: 'center' });
-  doc.line(75, 47, 135, 47);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(16);
+  doc.text('CERTIFICATE OF ANALYSIS', 105, 43, { align: 'center' });
+  doc.line(75, 44, 135, 44);
 
   // Material Info Box
   doc.setLineWidth(0.3);
-  doc.rect(15, 55, 180, 40);
+  doc.rect(15, 48, 180, 54);
 
+  doc.setFontSize(10);
+  
+  // Column 1
+  const col1X = 20;
+  const col1ValX = 55;
+  // Column 2
+  const col2X = 110;
+  const col2ValX = 145;
+
+  let infoY = 54;
+  const lineSpacing = 7;
+
+  // Row 1
   doc.setFont('times', 'normal');
-  doc.setFontSize(11);
-  doc.text(`Material Name:`, 20, 62);
+  doc.text(`Product/Material:`, col1X, infoY);
   doc.setFont('times', 'bold');
-  doc.text(`${material.name}`, 50, 62);
-
+  doc.text(`${material.name || '-'}`, col1ValX, infoY);
+  
   doc.setFont('times', 'normal');
-  doc.text(`Batch Number:`, 20, 70);
+  doc.text(`Analysis No:`, col2X, infoY);
   doc.setFont('times', 'bold');
-  doc.text(`${material.batchNumber}`, 50, 70);
+  doc.text(`${material.analysisNo || '-'}`, col2ValX, infoY);
 
+  infoY += lineSpacing;
+  // Row 2
   doc.setFont('times', 'normal');
-  doc.text(`Supplier:`, 20, 78);
-  doc.text(`${material.supplier}`, 50, 78);
+  doc.text(`Generic Name:`, col1X, infoY);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.genericName || '-'}`, col1ValX, infoY);
+  
+  doc.setFont('times', 'normal');
+  doc.text(`Strength:`, col2X, infoY);
+  doc.text(`${material.strength || '-'}`, col2ValX, infoY);
 
-  doc.text(`Pharmacopeia:`, 110, 62);
-  doc.text(`${material.pharmacopeia}`, 145, 62);
+  infoY += lineSpacing;
+  // Row 3
+  doc.setFont('times', 'normal');
+  doc.text(`Trade Name:`, col1X, infoY);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.tradeName || '-'}`, col1ValX, infoY);
+  
+  doc.setFont('times', 'normal');
+  doc.text(`Dosage Form:`, col2X, infoY);
+  doc.text(`${material.dosageForm || '-'}`, col2ValX, infoY);
 
-  doc.text(`Received Date:`, 110, 70);
-  doc.text(`${material.receivedDate || '-'}`, 145, 70);
+  infoY += lineSpacing;
+  // Row 4
+  doc.setFont('times', 'normal');
+  doc.text(`Batch Number:`, col1X, infoY);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.batchNumber || '-'}`, col1ValX, infoY);
+  
+  doc.setFont('times', 'normal');
+  doc.text(`Manufacturing Date:`, col2X, infoY);
+  doc.text(`${material.manufacturingDate || material.receivedDate || '-'}`, col2ValX, infoY);
 
-  doc.text(`Expiry Date:`, 110, 78);
-  doc.text(`${material.expiryDate || '-'}`, 145, 78);
+  infoY += lineSpacing;
+  // Row 5
+  doc.setFont('times', 'normal');
+  doc.text(`Batch/Lot Size:`, col1X, infoY);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.batchSize || '-'}`, col1ValX, infoY);
+  
+  doc.setFont('times', 'normal');
+  doc.text(`Expiry Date:`, col2X, infoY);
+  doc.text(`${material.expiryDate || '-'}`, col2ValX, infoY);
 
-  doc.text(`Final Status:`, 20, 88);
+  infoY += lineSpacing;
+  // Row 6
+  doc.setFont('times', 'normal');
+  doc.text(`Quantity (QTY):`, col1X, infoY);
+  doc.setFont('times', 'bold');
+  doc.text(`${material.quantity || 0} ${material.unit || ''}`, col1ValX, infoY);
+  
+  doc.setFont('times', 'normal');
+  doc.text(`Issue Date:`, col2X, infoY);
+  doc.text(`${material.issueDate || new Date().toISOString().split('T')[0]}`, col2ValX, infoY);
+
+  infoY += lineSpacing;
+  // Status
+  doc.setFont('times', 'normal');
+  doc.text(`Final Status:`, col1X, infoY);
   doc.setFontSize(12);
   const isApproved = material.status === 'Approved';
   if (isApproved) {
@@ -109,11 +164,11 @@ export async function generateCOAPDF(material: RawMaterial): Promise<void> {
   } else {
     doc.setTextColor(255, 0, 0);
   }
-  doc.text(`${material.status.toUpperCase()}`, 50, 88);
+  doc.text(`${material.status.toUpperCase()}`, col1ValX, infoY);
   doc.setTextColor(0, 0, 0);
 
   // Test Results Table Header
-  let y = 105;
+  let y = 110;
   doc.setFont('times', 'bold');
   doc.setFontSize(11);
   doc.setFillColor(240, 240, 240);

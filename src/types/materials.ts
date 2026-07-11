@@ -32,6 +32,11 @@ export interface RawMaterial {
   analysisNo?: string
   issueDate?: string
   expiryDate: string
+  genericName?: string
+  tradeName?: string
+  batchSize?: string
+  strength?: string
+  dosageForm?: string
   tests: MaterialTest[]
   status: MaterialStatus
   createdAt: Date

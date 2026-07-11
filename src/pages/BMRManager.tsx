@@ -312,9 +312,9 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                         <ShieldCheck className="h-10 w-10" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-1">{companySettings.name}</h1>
-                                        <p className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-1">Quality Management System | GxP COMPLIANCE</p>
-                                        <p className="text-[10px] font-bold text-slate-500 leading-tight">{companySettings.address}<br />Standard Operating Procedure: SOP-PRD-001</p>
+                                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-1">PHARMAQMS ENTERPRISE</h1>
+                                        <p className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-1">QUALITY MANAGEMENT SYSTEM | GXP COMPLIANCE</p>
+                                        <p className="text-[10px] font-bold text-slate-500 leading-tight">Industrial Zone, Phase 2, Pharmaceutical District Cairo, Egypt<br />Standard Operating Procedure: SOP-PRD-001</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -957,9 +957,14 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                                 .section-title { background: #f0f0f0; font-weight: bold; padding: 5px; border: 1px solid black; margin-top: 20px; }
                             }
                         `}</style>
-                        <div className="bmr-header">
-                            <h1 className="text-3xl font-bold uppercase">Manufacturing Batch Record</h1>
-                            <p className="text-sm font-bold mt-1">Quality Management System - Manufacturing Division</p>
+                        <div className="bmr-header" style={{ textAlign: 'left', borderBottom: '3px double black', marginBottom: '20px', paddingBottom: '10px' }}>
+                            <h1 className="text-3xl font-bold uppercase" style={{ margin: 0 }}>PHARMAQMS ENTERPRISE</h1>
+                            <div style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', margin: '4px 0' }}>Quality Management System | GxP COMPLIANCE</div>
+                            <div style={{ fontSize: '11px' }}>Industrial Zone, Phase 2, Pharmaceutical District Cairo, Egypt<br />Standard Operating Procedure: SOP-PRD-001</div>
+                            <div style={{ textAlign: 'right', marginTop: '-50px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold' }}>BATCH RECORD</div>
+                                <div style={{ fontSize: '10px', marginTop: '4px' }}>Ref No: {selectedBMR.batchNumber}</div>
+                            </div>
                         </div>
 
                         <table className="bmr-table">
@@ -987,11 +992,18 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                                 </tr>
                             </thead>
                             <tbody>
-                                {selectedBMR && (selectedBMR.ingredients || masterFormulas[selectedBMR.mfrId]?.ingredients).map((ing: any, i: number) => (
-                                    <tr key={i}>
-                                        <td>{ing.itemCode}</td><td>{ing.description}</td><td>{ing.standardQty || ing.quantity} {ing.unit}</td><td>__________</td><td>__________</td>
-                                    </tr>
-                                ))}
+                                {selectedBMR && (selectedBMR.ingredients || masterFormulas[selectedBMR.mfrId]?.ingredients).map((ing: any, i: number) => {
+                                    const verification = selectedBMR.materialVerifications?.find((v) => v.itemCode === ing.itemCode);
+                                    return (
+                                        <tr key={i}>
+                                            <td>{ing.itemCode}</td>
+                                            <td>{ing.description}</td>
+                                            <td>{ing.standardQty || ing.quantity} {ing.unit}</td>
+                                            <td>{verification ? `${verification.actualQty} ${ing.unit}` : '__________'}</td>
+                                            <td>{verification ? verification.verifiedBy : '__________'}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
 
@@ -999,13 +1011,36 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                         <table className="bmr-table">
                             <thead>
                                 <tr className="bg-gray-100">
-                                    <th>Step</th><th>Process Stage</th><th>Start Time</th><th>End Time</th><th>Observed Parameters</th><th>Signature</th>
+                                    <th>Step</th><th>Process Stage</th><th>Timing</th><th>Observed / Equipment</th><th>Signatures</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {selectedBMR.stepExecutions.map((step: any, i: number) => (
                                     <tr key={i}>
-                                        <td>{step.stepNumber}</td><td>{step.description}</td><td>{step.startedAt || '____:____'}</td><td>{step.completedAt || '____:____'}</td><td>________________</td><td>__________</td>
+                                        <td style={{ verticalAlign: 'top' }}>{step.stepNumber}</td>
+                                        <td style={{ verticalAlign: 'top' }}>
+                                            <strong>{step.description}</strong>
+                                            {step.instructionChecklist && step.instructionChecklist.length > 0 && (
+                                                <ul style={{ margin: '4px 0 0 16px', padding: 0, fontSize: '9pt' }}>
+                                                    {step.instructionChecklist.map((chk: any, idx: number) => (
+                                                        <li key={idx} style={{ listStyleType: 'none', marginLeft: '-16px' }}>[{chk.completed ? 'X' : ' '}] {chk.text}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </td>
+                                        <td style={{ verticalAlign: 'top', fontSize: '9pt' }}>
+                                            Start: {step.startedAt || '____'}<br/>
+                                            End: {step.completedAt || '____'}
+                                        </td>
+                                        <td style={{ verticalAlign: 'top', fontSize: '9pt' }}>
+                                            Equip: {step.equipmentId || '____'}<br/>
+                                            Value: {step.realizedValue || '____'}
+                                        </td>
+                                        <td style={{ verticalAlign: 'top', fontSize: '9pt', whiteSpace: 'nowrap' }}>
+                                            Opr: {step.operatorSignature || '____'}<br/>
+                                            Sup: {step.supervisorSignature || '____'}<br/>
+                                            QA: {step.qaSignature || '____'}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
