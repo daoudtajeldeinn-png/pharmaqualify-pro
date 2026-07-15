@@ -378,10 +378,26 @@ const [materialForm, setMaterialForm] = useState({
     );
   };
 
+  // Safe date comparison — prevents crash on empty/invalid date strings
+  const safeIsExpired = (dateStr: string | undefined): boolean => {
+    if (!dateStr) return false;
+    try {
+      const d = new Date(dateStr);
+      return !isNaN(d.getTime()) && d < new Date();
+    } catch {
+      return false;
+    }
+  };
+
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return '';
-    const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-GB');
+    try {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-GB');
+    } catch {
+      return '';
+    }
   };
 
   return (
@@ -525,7 +541,7 @@ const [materialForm, setMaterialForm] = useState({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">تاريخ الانتهاء:</span>
-                  <span className={new Date(material.expiryDate) < new Date() ? 'text-red-600 font-bold' : ''}>
+                   <span className={safeIsExpired(material.expiryDate) ? 'text-red-600 font-bold' : ''}>
                     {material.expiryDate}
                   </span>
                 </div>
@@ -885,7 +901,7 @@ const [materialForm, setMaterialForm] = useState({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Expiry Date:</span>
-                        <span className={new Date(selectedMaterial.expiryDate) < new Date() ? 'text-red-600 font-bold' : ''}>
+                         <span className={safeIsExpired(selectedMaterial.expiryDate) ? 'text-red-600 font-bold' : ''}>
                           {selectedMaterial.expiryDate}
                         </span>
                       </div>
