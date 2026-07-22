@@ -86,13 +86,23 @@ function serializeForSupabase(item: Record<string, unknown>, tableName?: string)
 
     // Fix activities 400 error (reserved words or missing columns in Supabase)
     if (tableName === 'activities') {
-        if ('user' in cleanItem) {
-            cleanItem.user_id = cleanItem.user;
-            delete cleanItem.user;
+        const allowedColumns = ['id', 'type', 'description', 'user', 'user_id', 'timestamp', 'created_at', 'related_id', 'relatedId'];
+        for (const k of Object.keys(cleanItem)) {
+            if (!allowedColumns.includes(k)) {
+                delete cleanItem[k];
+            }
         }
-        if ('timestamp' in cleanItem) {
-            cleanItem.created_at = cleanItem.timestamp;
+        if ('timestamp' in cleanItem && !('created_at' in cleanItem)) {
+            const ts = cleanItem.timestamp;
+            cleanItem.created_at = ts instanceof Date ? ts.toISOString() : ts;
             delete cleanItem.timestamp;
+        }
+        if ('relatedId' in cleanItem) {
+            cleanItem.related_id = cleanItem.relatedId;
+            delete cleanItem.relatedId;
+        }
+        if (!cleanItem.user_id && cleanItem.user) {
+            cleanItem.user_id = String(cleanItem.user);
         }
     }
 

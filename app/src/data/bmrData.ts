@@ -12,6 +12,7 @@ export interface BMRStepExecution {
     plannedDuration?: string;
     startedAt?: string;
     completedAt?: string;
+    analysisDate?: string;
     operatorSignature?: string;
     supervisorSignature?: string;
     qaSignature?: string;
