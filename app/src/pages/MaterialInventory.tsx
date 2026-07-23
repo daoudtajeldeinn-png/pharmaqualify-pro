@@ -521,11 +521,15 @@ const [materialForm, setMaterialForm] = useState({
                   <span>{material.quantity} {material.unit}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">الموقع:</span>
+                  <span className="text-slate-500">Location:</span>
                   <span>{material.location || 'Unassigned'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">تاريخ الانتهاء:</span>
+                  <span className="text-slate-500">Mfg Date:</span>
+                  <span>{typeof material.manufacturingDate === 'object' ? (material.manufacturingDate as any).toLocaleDateString() : (material.manufacturingDate || '-')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Expiry Date:</span>
                   <span className={new Date(material.expiryDate) < new Date() ? 'text-red-600 font-bold' : ''}>
                     {typeof material.expiryDate === 'object' ? (material.expiryDate as any).toLocaleDateString() : material.expiryDate}
                   </span>

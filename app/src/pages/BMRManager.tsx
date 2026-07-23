@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { Plus, CheckCircle2, Printer, ClipboardCheck, Activity, Thermometer, ShieldCheck, PenLine, AlertTriangle, Scale, AlertCircle, Lock } from 'lucide-react';
+import { DataTableActions } from '@/components/ui/data-table-actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -128,6 +129,7 @@ interface StepUpdate {
   realizedParameters?: Record<string, string>;
   startedAt?: string;
   completedAt?: string;
+  analysisDate?: string;
   operatorSignature?: string;
   supervisorSignature?: string;
   status?: 'Pending' | 'In-Progress' | 'Completed' | 'Skipped';
@@ -309,16 +311,11 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                 })()}
                             </div>
                             <div className="mt-4 flex justify-end gap-2">
-                                {canModify && (
-                                  <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={(e) => { e.stopPropagation(); setEditingBMR(batch); setShowEditDialog(true); }}>
-                                      <PenLine className="h-3 w-3 mr-1" /> Edit Meta
-                                  </Button>
-                                )}
-                                {canDelete && (
-                                  <Button variant="ghost" size="sm" className="h-7 text-[10px] font-bold text-red-500 hover:text-red-700 hover:bg-red-50" onClick={(e) => handleDeleteBMR(batch.id, e)}>
-                                      <Plus className="h-3 w-3 mr-1 rotate-45" /> Delete
-                                  </Button>
-                                )}
+                                <DataTableActions
+                                    item={batch}
+                                    onEdit={(b) => { setEditingBMR(b); setShowEditDialog(true); }}
+                                    onDelete={(id) => { handleDeleteBMR(id, new MouseEvent('click') as any); }}
+                                />
                                 {!canModify && !canDelete && (
                                   <span className="text-[9px] text-slate-400 flex items-center gap-1"><Lock className="h-3 w-3" /> Read Only</span>
                                 )}
@@ -385,8 +382,8 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                 <TabsList className="grid grid-cols-5 bg-slate-100 p-1 mb-6">
                                     <TabsTrigger value="overview">Summary</TabsTrigger>
                                     <TabsTrigger value="dispensing">Materials</TabsTrigger>
-                                    <TabsTrigger value="processing" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Manufacturing</TabsTrigger>
-                                    <TabsTrigger value="packaging" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Packaging (BPR)</TabsTrigger>
+                                    <TabsTrigger value="processing" disabled={!selectedBMR.lineClearance?.qaReleased} className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white">Manufacturing</TabsTrigger>
+                                    <TabsTrigger value="packaging" disabled={!selectedBMR.lineClearance?.qaReleased} className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Packaging (BPR)</TabsTrigger>
                                     <TabsTrigger value="reconciliation">Yield Analysis</TabsTrigger>
                                 </TabsList>
 
@@ -409,21 +406,63 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                     <div className="border rounded-xl p-6 bg-emerald-50/30 border-emerald-100 shadow-inner">
                                         <h3 className="font-bold flex items-center gap-2 mb-4 text-emerald-800"><ShieldCheck className="h-5 w-5" /> Mandatory Line Clearance</h3>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-emerald-100">
-                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            <div 
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedBMR.lineClearance?.areaFree ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-emerald-100 hover:border-emerald-300'}`}
+                                                onClick={() => {
+                                                    const updatedBMR = { ...selectedBMR, lineClearance: { ...(selectedBMR.lineClearance || { areaFree: false, calibrationValid: false, rmAvailability: false, qaReleased: false }), areaFree: !selectedBMR.lineClearance?.areaFree } };
+                                                    dispatch({ type: 'UPDATE_BMR', payload: updatedBMR });
+                                                    setSelectedBMR(updatedBMR);
+                                                }}
+                                            >
+                                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${selectedBMR.lineClearance?.areaFree ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`}>
+                                                    {selectedBMR.lineClearance?.areaFree && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                                </div>
                                                 <span className="text-sm font-semibold">Area free from previous batches</span>
                                             </div>
-                                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-emerald-100">
-                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            <div 
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedBMR.lineClearance?.calibrationValid ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-emerald-100 hover:border-emerald-300'}`}
+                                                onClick={() => {
+                                                    const updatedBMR = { ...selectedBMR, lineClearance: { ...(selectedBMR.lineClearance || { areaFree: false, calibrationValid: false, rmAvailability: false, qaReleased: false }), calibrationValid: !selectedBMR.lineClearance?.calibrationValid } };
+                                                    dispatch({ type: 'UPDATE_BMR', payload: updatedBMR });
+                                                    setSelectedBMR(updatedBMR);
+                                                }}
+                                            >
+                                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${selectedBMR.lineClearance?.calibrationValid ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`}>
+                                                    {selectedBMR.lineClearance?.calibrationValid && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                                </div>
                                                 <span className="text-sm font-semibold">Calibration labels are valid</span>
                                             </div>
-                                            <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-emerald-100">
-                                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                                            <div 
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedBMR.lineClearance?.rmAvailability ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-emerald-100 hover:border-emerald-300'}`}
+                                                onClick={() => {
+                                                    const updatedBMR = { ...selectedBMR, lineClearance: { ...(selectedBMR.lineClearance || { areaFree: false, calibrationValid: false, rmAvailability: false, qaReleased: false }), rmAvailability: !selectedBMR.lineClearance?.rmAvailability } };
+                                                    dispatch({ type: 'UPDATE_BMR', payload: updatedBMR });
+                                                    setSelectedBMR(updatedBMR);
+                                                }}
+                                            >
+                                                <div className={`w-5 h-5 rounded border flex items-center justify-center ${selectedBMR.lineClearance?.rmAvailability ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`}>
+                                                    {selectedBMR.lineClearance?.rmAvailability && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                                </div>
                                                 <span className="text-sm font-semibold">RM availability checked</span>
                                             </div>
-                                            <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
-                                                <Activity className="h-5 w-5 text-orange-600 animate-pulse" />
-                                                <span className="text-sm font-bold text-orange-800 italic uppercase">QA Release Required</span>
+                                            <div 
+                                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedBMR.lineClearance?.qaReleased ? 'bg-emerald-500 border-emerald-600' : 'bg-orange-50 border-orange-100'}`}
+                                                onClick={() => {
+                                                    if (!canModify) return toast.error("Only QA can authorize line clearance.");
+                                                    const updatedBMR = { ...selectedBMR, lineClearance: { ...(selectedBMR.lineClearance || { areaFree: false, calibrationValid: false, rmAvailability: false, qaReleased: false }), qaReleased: !selectedBMR.lineClearance?.qaReleased } };
+                                                    dispatch({ type: 'UPDATE_BMR', payload: updatedBMR });
+                                                    setSelectedBMR(updatedBMR);
+                                                    if (!selectedBMR.lineClearance?.qaReleased) toast.success("Line clearance QA Release authorized.");
+                                                }}
+                                            >
+                                                {selectedBMR.lineClearance?.qaReleased ? (
+                                                    <ShieldCheck className="h-5 w-5 text-white" />
+                                                ) : (
+                                                    <Activity className="h-5 w-5 text-orange-600 animate-pulse" />
+                                                )}
+                                                <span className={`text-sm font-bold italic uppercase ${selectedBMR.lineClearance?.qaReleased ? 'text-white' : 'text-orange-800'}`}>
+                                                    {selectedBMR.lineClearance?.qaReleased ? 'QA Released' : 'QA Release Required'}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -609,22 +648,30 @@ const handleUpdateStep = (stepNumber: number, updates: StepUpdate) => {
                                                         <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Process Timing</div>
                                                         <div className="grid grid-cols-2 gap-2">
                                                             <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                                                <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">Start Time</Label>
+                                                                <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">Analysis Date</Label>
                                                                 <Input 
-                                                                    type="time" 
+                                                                    type="date" 
                                                                     className="h-8 text-[10px] font-bold py-1 px-2" 
-                                                                    value={step.startedAt || ''} 
-                                                                    onChange={(e) => handleUpdateStep(step.stepNumber, { startedAt: e.target.value, status: step.status === 'Pending' ? 'In-Progress' : step.status })}
+                                                                    value={step.analysisDate || ''} 
+                                                                    onChange={(e) => handleUpdateStep(step.stepNumber, { analysisDate: e.target.value })}
                                                                 />
                                                             </div>
                                                             <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                                                <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">End Time</Label>
-                                                                <Input 
-                                                                    type="time" 
-                                                                    className="h-8 text-[10px] font-bold py-1 px-2" 
-                                                                    value={step.completedAt || ''} 
-                                                                    onChange={(e) => handleUpdateStep(step.stepNumber, { completedAt: e.target.value })}
-                                                                />
+                                                                <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">Start / End Time</Label>
+                                                                <div className="flex gap-1">
+                                                                    <Input 
+                                                                        type="time" 
+                                                                        className="h-8 text-[10px] font-bold py-1 px-1 w-full" 
+                                                                        value={step.startedAt || ''} 
+                                                                        onChange={(e) => handleUpdateStep(step.stepNumber, { startedAt: e.target.value, status: step.status === 'Pending' ? 'In-Progress' : step.status })}
+                                                                    />
+                                                                    <Input 
+                                                                        type="time" 
+                                                                        className="h-8 text-[10px] font-bold py-1 px-1 w-full" 
+                                                                        value={step.completedAt || ''} 
+                                                                        onChange={(e) => handleUpdateStep(step.stepNumber, { completedAt: e.target.value })}
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -750,22 +797,30 @@ selectedBMR.stepExecutions.filter((s: BMRStepExecution) => s.phase === 'Packagin
                                                             <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Packaging Timing</div>
                                                             <div className="grid grid-cols-2 gap-2">
                                                                 <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                                                    <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">Start Time</Label>
+                                                                    <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">Analysis Date</Label>
                                                                     <Input 
-                                                                        type="time" 
+                                                                        type="date" 
                                                                         className="h-8 text-[10px] font-bold py-1 px-2" 
-                                                                        value={step.startedAt || ''} 
-                                                                        onChange={(e) => handleUpdateStep(step.stepNumber, { startedAt: e.target.value, status: step.status === 'Pending' ? 'In-Progress' : step.status })}
+                                                                        value={step.analysisDate || ''} 
+                                                                        onChange={(e) => handleUpdateStep(step.stepNumber, { analysisDate: e.target.value })}
                                                                     />
                                                                 </div>
                                                                 <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                                                    <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">End Time</Label>
-                                                                    <Input 
-                                                                        type="time" 
-                                                                        className="h-8 text-[10px] font-bold py-1 px-2" 
-                                                                        value={step.completedAt || ''} 
-                                                                        onChange={(e) => handleUpdateStep(step.stepNumber, { completedAt: e.target.value })}
-                                                                    />
+                                                                    <Label className="text-[8px] font-bold text-slate-400 uppercase mb-1 block">Start / End Time</Label>
+                                                                    <div className="flex gap-1">
+                                                                        <Input 
+                                                                            type="time" 
+                                                                            className="h-8 text-[10px] font-bold py-1 px-1 w-full" 
+                                                                            value={step.startedAt || ''} 
+                                                                            onChange={(e) => handleUpdateStep(step.stepNumber, { startedAt: e.target.value, status: step.status === 'Pending' ? 'In-Progress' : step.status })}
+                                                                        />
+                                                                        <Input 
+                                                                            type="time" 
+                                                                            className="h-8 text-[10px] font-bold py-1 px-1 w-full" 
+                                                                            value={step.completedAt || ''} 
+                                                                            onChange={(e) => handleUpdateStep(step.stepNumber, { completedAt: e.target.value })}
+                                                                        />
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>

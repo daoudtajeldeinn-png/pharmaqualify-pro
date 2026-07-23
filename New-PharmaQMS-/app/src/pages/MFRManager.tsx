@@ -18,6 +18,11 @@ interface CompanySettings {
   address: string;
   phone: string;
   email: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+  email?: string;
+  documentControl?: string;
 }
 
 function loadCompanySettings(): CompanySettings {
@@ -30,6 +35,7 @@ function loadCompanySettings(): CompanySettings {
     address: 'Khartoum, Sudan',
     phone: '+249 123 456 789',
     email: 'info@pharma.com',
+    documentControl: 'MFR-SYS-V2',
   };
 }
 
@@ -46,6 +52,9 @@ export function MFRManagerPage() {
     const [isEditing, setIsEditing] = useState(false);
     
     // Load company settings from Global Settings
+    const companySettings = loadCompanySettings();
+
+    // Load company settings from Global Settings page
     const companySettings = loadCompanySettings();
 
     const handleSaveMFR = () => {
@@ -172,16 +181,21 @@ export function MFRManagerPage() {
                 <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto bg-slate-50 p-0 border-none rounded-none shadow-2xl">
                     {selectedMFR && (
                         <div className="bg-white min-h-[297mm] w-full mx-auto p-12 shadow-inner print:p-0 font-serif">
-                            {/* Professional Header - A4 Style */}
+                            {/* Professional Header - A4 Style — company data from Global Settings */}
                             <div className="flex justify-between items-start border-b-4 border-double border-slate-900 pb-8 mb-8">
                                 <div className="flex gap-6 items-center">
                                     <div className="bg-slate-900 p-5 rounded-xl text-white shadow-lg">
                                         <Layers className="h-10 w-10" />
                                     </div>
                                     <div>
-                                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-1">{companySettings.name}</h1>
+                                        <h1 className="text-4xl font-black text-slate-900 tracking-tighter leading-none mb-1">{companySettings.name.toUpperCase()}</h1>
                                         <p className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-1">Quality Management System | GxP COMPLIANCE</p>
-                                        <p className="text-[10px] font-bold text-slate-500 leading-tight">{companySettings.address}<br />Document Control: MFR-SYS-V2</p>
+                                        <p className="text-[10px] font-bold text-slate-500 leading-tight">
+                                            {companySettings.address}
+                                            {companySettings.city ? `, ${companySettings.city}` : ''}
+                                            {companySettings.country ? `, ${companySettings.country}` : ''}
+                                            {' | '}Document Control: {companySettings.documentControl || 'MFR-SYS-V2'}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -443,13 +457,14 @@ export function MFRManagerPage() {
                     <DialogFooter className="bg-slate-50 -mx-6 -mb-6 p-4 mt-6 border-t"><Button onClick={handleSaveMFR} className="bg-indigo-600 px-8">Create Master Record</Button></DialogFooter>
                 </DialogContent>
             </Dialog>
-{/* Hidden Professional Printer Engine */}
+
+            {/* Hidden Professional Printer Engine */}
             {selectedMFR && (
                 <div style={{ position: 'absolute', left: '-9999px' }}>
                     <div ref={printRef} className="p-12 bg-white text-black" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'serif' }}>
                         <style>{`
-                            @media print { 
-                                @page { size: A4; margin: 10mm; } 
+                            @media print {
+                                @page { size: A4; margin: 10mm; }
                                 .mfr-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
                                 .mfr-table th, .mfr-table td { border: 1px solid black; padding: 6px; text-align: left; font-size: 10pt; }
                                 .mfr-header { text-align: center; border-bottom: 3px double black; margin-bottom: 20px; padding-bottom: 10px; }
@@ -457,8 +472,9 @@ export function MFRManagerPage() {
                             }
                         `}</style>
                         <div className="mfr-header">
-                            <h1 className="text-3xl font-bold uppercase">Master Formula Record</h1>
-                            <p className="text-sm font-bold mt-1">Quality Management System - Pharmacy Division</p>
+                            <h1 className="text-3xl font-bold uppercase">{companySettings.name}</h1>
+                            <p className="text-sm font-bold mt-1">Master Formula Record — Quality Management System</p>
+                            <p className="text-xs mt-1">{companySettings.address}{companySettings.city ? `, ${companySettings.city}` : ''}</p>
                         </div>
 
                         <table className="mfr-table">

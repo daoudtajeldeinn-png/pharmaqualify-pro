@@ -17,6 +17,16 @@ const coaTypes: COAType[] = ['Finished Product', 'Raw Material', 'Water Analysis
 import { backupSystemData } from '@/services/BackupService';
 import { SignatureModal } from '@/components/security/SignatureModal';
 import type { COARecord, COAType } from '@/types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Load company settings from localStorage (same source as Settings page)
+function loadCompanySettings() {
+    try {
+        const stored = localStorage.getItem('pqms_company_settings');
+        if (stored) return JSON.parse(stored);
+    } catch { /* fallback */ }
+    return { name: 'National Pharmaceutical Company', address: 'Khartoum, Sudan' };
+}
 
 
 export function COAManagerPage() {
@@ -28,11 +38,12 @@ export function COAManagerPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isSignatureOpen, setIsSignatureOpen] = useState(false);
     const [pendingCOA, setPendingCOA] = useState<COARecord | null>(null);
+    const companySettings = loadCompanySettings();
     const initialFormState: Partial<COARecord> = {
         testResults: [{ test: '', specification: '', result: '', status: 'Pass' }],
         type: 'Finished Product',
-        manufacturer: 'Pharma Corp',
-        address: 'Industrial Zone, Phase 2, Pharmaceutical District',
+        manufacturer: companySettings.name,
+        address: companySettings.address,
         manufacturingDate: '',
         analysisDate: '',
         status: 'Draft',
@@ -83,8 +94,8 @@ export function COAManagerPage() {
             analysisDate: formData.analysisDate || '',
             expiryDate: formData.expiryDate || '',
             issueDate: formData.issueDate || new Date().toISOString().split('T')[0],
-            manufacturer: formData.manufacturer || 'Pharma Corp',
-            address: formData.address || 'Industrial Zone, Phase 2, Pharmaceutical District',
+            manufacturer: formData.manufacturer || companySettings.name,
+            address: formData.address || companySettings.address,
             testResults: formData.testResults || [],
             marketComplaintStatus: formData.marketComplaintStatus || 'Verified and Compliant',
             analyzedBy: formData.analyzedBy || '',
@@ -169,7 +180,7 @@ export function COAManagerPage() {
                 productName: monograph.name,
                 strength: (monograph as any).strength || '',
                 dosageForm: (monograph as any).dosageForm || '',
-                manufacturer: monograph.standard === 'In-House' ? 'In-House' : 'Pharma Corp',
+                manufacturer: monograph.standard === 'In-House' ? 'In-House' : companySettings.name,
                 testResults: sortedTests.map(t => ({
                     test: t.test,
                     specification: t.specification,
@@ -313,7 +324,34 @@ export function COAManagerPage() {
 
                         {/* Form Fields */}
                         <div className="grid grid-cols-2 col-span-2 gap-4">
-                            <div className="space-y-1"><Label>Product Name*</Label><Input value={formData.productName || ''} onChange={e => setFormData({ ...formData, productName: e.target.value })} className="border-slate-300" /></div>
+                            <div className="space-y-1">
+                                <Label>Product Name*</Label>
+                                {/* Dynamic dropdown: MFR products + raw material names + registered products */}
+                                {(() => {
+                                    const mfrNames = Object.values(state.masterFormulas || {}).map(m => m.productName);
+                                    const rmNames = (state.rawMaterials || []).map(rm => rm.name);
+                                    const productNames = (state.products || []).map(p => p.name);
+                                    const allNames = Array.from(new Set([...mfrNames, ...productNames, ...rmNames])).filter(Boolean);
+                                    return allNames.length > 0 ? (
+                                        <div className="flex gap-1">
+                                            <Select
+                                                value={allNames.includes(formData.productName || '') ? (formData.productName || '') : ''}
+                                                onValueChange={(val) => setFormData({ ...formData, productName: val })}
+                                            >
+                                                <SelectTrigger className="border-slate-300 flex-1">
+                                                    <SelectValue placeholder="Select registered product..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {mfrNames.length > 0 && <><SelectItem value="__mfr_header__" disabled className="text-[10px] font-bold text-slate-400 uppercase">— MFR Products —</SelectItem>{mfrNames.map(n => <SelectItem key={`mfr-${n}`} value={n}>{n}</SelectItem>)}</>}
+                                                    {productNames.length > 0 && <><SelectItem value="__prod_header__" disabled className="text-[10px] font-bold text-slate-400 uppercase">— Registered Products —</SelectItem>{productNames.map(n => <SelectItem key={`prod-${n}`} value={n}>{n}</SelectItem>)}</>}
+                                                    {rmNames.length > 0 && <><SelectItem value="__rm_header__" disabled className="text-[10px] font-bold text-slate-400 uppercase">— Raw Materials —</SelectItem>{rmNames.map(n => <SelectItem key={`rm-${n}`} value={n}>{n}</SelectItem>)}</>}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    ) : null;
+                                })()}
+                                <Input value={formData.productName || ''} onChange={e => setFormData({ ...formData, productName: e.target.value })} className="border-slate-300" placeholder="Or type product name here..." />
+                            </div>
                             <div className="space-y-1"><Label>Analysis Number</Label><Input value={formData.analysisNo || ''} onChange={e => setFormData({ ...formData, analysisNo: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Strength</Label><Input value={formData.strength || ''} onChange={e => setFormData({ ...formData, strength: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Dosage Form</Label><Input value={formData.dosageForm || ''} onChange={e => setFormData({ ...formData, dosageForm: e.target.value })} className="border-slate-300" /></div>
@@ -330,7 +368,7 @@ export function COAManagerPage() {
                             <div className="space-y-1"><Label>Trade Name (Brand)</Label><Input value={formData.brandName || ''} onChange={e => setFormData({ ...formData, brandName: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1"><Label>Quantity (QTY)</Label><Input value={formData.quantity || ''} onChange={e => setFormData({ ...formData, quantity: e.target.value })} className="border-slate-300" /></div>
                             <div className="space-y-1 col-span-2">
-                              <Button 
+                              <Button
                                 type="button"
                                 onClick={() => {
                                   if (!formData.batchNumber) {
@@ -435,12 +473,12 @@ export function COAManagerPage() {
                 <div style={{ position: 'absolute', left: '-9999px' }}>
                     <div ref={printRef} className="p-12 bg-white text-black print-a4-container" style={{ width: '210mm', minHeight: '297mm', fontFamily: 'Times New Roman, serif' }}>
                         <style>{`
-                            @media print { 
-                                @page { size: A4; margin: 15mm; } 
+                            @media print {
+                                @page { size: A4; margin: 15mm; }
                                 .print-a4-container { width: 100% !important; margin: 0 !important; padding: 0 !important; }
-                                table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-bottom: 20px; } 
-                                tr { page-break-inside: avoid; page-break-after: auto; } 
-                                thead { display: table-header-group; } 
+                                table { width: 100%; border-collapse: collapse; page-break-inside: auto; margin-bottom: 20px; }
+                                tr { page-break-inside: avoid; page-break-after: auto; }
+                                thead { display: table-header-group; }
                                 th, td { border: 1px solid black; padding: 8px; text-align: left; }
                             }
                         `}</style>
